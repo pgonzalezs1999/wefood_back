@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'description',
@@ -18,13 +19,15 @@ class Product extends Model
         'vegan',
         'bakery',
         'fresh',
-        'workingOnMonday',
-        'workingOnTuesday',
-        'workingOnWednesday',
-        'workingOnThursday',
-        'workingOnFriday',
-        'workingOnSaturday',
-        'workingOnSunday',
+        'working_on_monday',
+        'working_on_tuesday',
+        'working_on_wednesday',
+        'working_on_thursday',
+        'working_on_friday',
+        'working_on_saturday',
+        'working_on_sunday',
+        'starting_hour',
+        'ending_hour',
     ];
 
     protected $hidden = [

@@ -8,20 +8,21 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Tymon\JWTAuth\Contracts\JWTSubject;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable implements JWTSubject
 {
     use HasApiTokens, HasFactory, Notifiable;
 
-    public $table = 'users';
-    protected $primaryKey = 'id';
-    public $timestamps = true;
+    use SoftDeletes;
 
     protected $fillable = [
         'real_name',
         'username',
         'password',
         'email',
+        'email_verified',
+        'is_admin',
         'phone',
         'phone_prefix',
         'sex',
