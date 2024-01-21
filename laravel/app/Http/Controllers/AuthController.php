@@ -9,15 +9,23 @@ use App\Models\User;
 
 class AuthController extends Controller
 {
-    public function _construct() {
+    public function __construct() {
         $this -> middleware('auth:api', ['except' => ['register', 'login']]);
     }
 
     public function register(Request $request) {
         $validator = Validator::make($request -> all(), [
-            'name' => 'required|string|max:255',
+            'username' => 'required|string|max:255|unique:users',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:6|confirmed',
+            'password' => 'required|string|min:6',
+            'real_name' => 'nullable|string|regex:/^[^\d]+$/',
+            'phone' => 'nullable|integer',
+            'phone_prefix' => 'nullable|integer',
+            'sex' => 'nullable|string|in:M,F,O',
+            'last_latitude' => 'nullable|numeric',
+            'last_longitude' => 'nullable|numeric',
+            'last_login_date' => 'nullable|date',
+            'id_business' => 'nullable|numeric',
         ]);
         if($validator -> fails()) {
             return response() -> json($validator -> errors() -> toJson(), 400);
@@ -55,7 +63,7 @@ class AuthController extends Controller
         ]);
     }
 
-    public function profile() {
+    public function getProfileInfo() {
         return response() -> json(auth() -> user());
     }
 
