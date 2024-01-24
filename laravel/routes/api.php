@@ -12,16 +12,17 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::group(['middleware' => 'api', 'prefix' => 'auth'], function($router) {
-    Route::post('/signin', [UserController::class, 'signin']);
+    Route::post('/signin', [UserController::class, 'signin']); // only for customers
     Route::post('/signout', [UserController::class, 'signout']);
     
-    Route::post('/login', [AuthController::class, 'login']);
-    Route::get('/getProfileInfo', [AuthController::class, 'getProfileInfo']);
+    Route::post('/login', [AuthController::class, 'login']) -> name('login');
+    Route::get('/getProfile', [UserController::class, 'getProfile']);
     Route::post('/logout', [AuthController::class, 'logout']);
     
-    Route::get('/getAllCountries', [CountryController::class, 'getAllCountries']);
-
     Route::post('/createBusiness', [BusinessController::class, 'createBusiness']); // business' user signin
     Route::get('/getSessionBusiness', [BusinessController::class, 'getSessionBusiness']);
     Route::get('/getAllBusinesses', [BusinessController::class, 'getAllBusinesses']);
+    Route::post('/deleteBusiness', [BusinessController::class, 'deleteBusiness']);
+    
+    Route::get('/getAllCountries', [CountryController::class, 'getAllCountries']);
 });

@@ -17,6 +17,8 @@ class CountryController extends Controller
 
     public function getAllCountries() {
         $countries = Country::all();
-        return response() -> json($countries);
+        return response() -> json([
+            'message' => $countries
+        ], 200);
     }
 }

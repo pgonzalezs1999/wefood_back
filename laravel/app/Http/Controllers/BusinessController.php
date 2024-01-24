@@ -36,24 +36,26 @@ class BusinessController extends Controller
             'logo_file' => 'required|file|max:2048|image',
         ]);
         if($validator -> fails()) {
-            return response() -> json($validator -> errors() -> toJson(), 422);
+            return response() -> json([
+                'error' => $validator -> errors() -> toJson()
+            ], 422);
         }
+        $business = Business::create([
+            'name' => $request -> name,
+            'tax_id' => $request -> tax_id,
+            'directions' => $request -> directions,
+        ]);
         $user = User::create([
-            'username' => $request->email,
-            'email' => $request->email,
+            'username' => $request -> email,
+            'email' => $request -> email,
             'password' => bcrypt($request->password),
             'phone_prefix' => $request->phone_prefix,
-            'phone' => $request->phone,
-        ]);
-        $business = Business::create([
-            'user_id' => $user->id,
-            'name' => $request->name,
-            'tax_id' => $request->tax_id,
-            'directions' => $request->directions,
+            'phone' => $request -> phone,
+            'id_business' => $business -> id_business,
         ]);
         try {
             $business_id = $business -> id;
-            $image_path = "public/images/{$business_id}";
+            $image_path = "public/storage/images/{$business_id}";
             $image_name = 'profile.' . $request -> file('logo_file') -> getClientOriginalExtension();
             Storage::disk('public') -> putFileAs(
                 $image_path,
@@ -64,7 +66,9 @@ class BusinessController extends Controller
             $user->forceDelete();
             $business->forceDelete();
             print_r($e->getMessage());
-            return response() -> json('Could not upload the image', 500);
+            return response() -> json([
+                'error' => 'Could not upload the image'
+            ], 500);
         }
         return response()->json([
             'message' => 'Business created successfully. Waiting to be validated by an admin',
@@ -75,22 +79,50 @@ class BusinessController extends Controller
 
     public function getAllBusinesses() {
         $businesses = Business::all();
-        return response() -> json($businesses);
-    }
-
-    public function deleteBusiness() {
-        $business = Business::find($id);
-        $business -> delete();
-        return response() -> json('Business deleted successfully');
+        return response() -> json([
+            'businesses' => $businesses
+        ], 200);
     }
 
     public function getSessionBusiness() {
-        $id_business = Auth::user() -> id_business;
+        $user = Auth::user();
+        $user -> makeHidden([
+            'created_at', 'updated_at', 'deleted_at',
+            'last_login_date', 'last_latitude', 'last_longitude',
+            'id_business', 'is_admin', 'sex',
+        ]);
+        $id_business = $user -> id_business;
         if($id_business == null) {
-            return response() -> json('No business found');
+            return response() -> json([
+                'error' => 'No business found'
+            ], 404);
         } else {
             $business = Business::find($id_business);
-            return response() -> json($business);
+            $business -> makeHidden([
+                'created_at', 'updated_at', 'deleted_at',
+                'longitude', 'latitude', 'is_validated',
+            ]);
+            return response() -> json([
+                'user' => $user,
+                'business' => $business
+            ], 200);
         }
+    }
+
+    public function deleteBusiness() {
+        $user = Auth::user();
+        $id = $user -> id_business;
+        $business = Business::find($id);
+        if($business) {
+            $business -> delete();
+            $user -> delete();
+        } else {
+            return response() -> json([
+                'error' => 'Business not found'
+            ], 404);
+        }
+        return response() -> json([
+            'message' => 'Business and associated user deleted successfully'
+        ], 200);
     }
 }

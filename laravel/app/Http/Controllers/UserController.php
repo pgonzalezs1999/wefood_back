@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Carbon\Carbon;
+use JWTAuth;
 use Auth;
 use Validator;
 use App\Models\User;
@@ -31,7 +33,9 @@ class UserController extends Controller
             'id_business' => 'nullable|numeric',
         ]);
         if($validator -> fails()) {
-            return response() -> json($validator -> errors() -> toJson(), 400);
+            return response() -> json([
+                'error' => $validator -> errors() -> toJson()
+            ], 400);
         }
         $user = User::create(array_merge(
             $validator -> validated(),
@@ -43,6 +47,17 @@ class UserController extends Controller
         ], 201);
     }
 
+    public function getProfile() {
+        $user = Auth::user();
+        $token = JWTAuth::parseToken() -> getToken();
+        $decodedToken = JWTAuth::manager() -> decode($token);
+        $expirationDate = Carbon::createFromTimestamp($decodedToken['exp']) -> toDateTimeString();
+        $currentTime = Carbon::createFromTimestamp(time()) -> toDateTimeString();
+        return response() -> json([
+            'error' => $user,
+        ], 200);
+    }
+
     public function signout() {
         $user = auth() -> user();
         $user -> delete();
@@ -50,6 +65,6 @@ class UserController extends Controller
 
         return response()->json([
             'message' => 'User successfully  deleted'
-        ]);
+        ], 200);
     }
 }

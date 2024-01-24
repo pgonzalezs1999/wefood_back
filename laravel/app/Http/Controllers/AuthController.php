@@ -22,7 +22,9 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]); 
         if ($validator->fails()) {
-            return response()->json($validator->errors()->toJson(), 422);
+            return response()->json([
+                'error' => $validator -> errors() -> toJson()
+            ], 422);
         } 
         $credentials = $request -> input('username');
         
@@ -33,7 +35,9 @@ class AuthController extends Controller
             $credentials = ['username' => $credentials, 'password' => $request->input('password')];
         }
         if(! $token = Auth::attempt($credentials)) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+            return response()->json([
+                'error' => 'Unauthorized'
+            ], 401);
         }
         return $this->createNewToken($token);
     }
@@ -41,20 +45,13 @@ class AuthController extends Controller
     public function createNewToken($token) {
         return response() -> json([
             'access_token' => $token,
-            'token_type' => 'bearer',
-            'expires_in' => auth() -> factory() -> getTTL() * 60,
-            'user' => auth() -> user(),
-        ]);
-    }
-
-    public function getProfileInfo() {
-        return response() -> json(auth() -> user());
+        ], 200);
     }
 
     public function logout() {
         auth() -> logout();
         return response() -> json([
             'message' => 'User successfully logged out'
-        ]);
+        ], 200);
     }
 }
