@@ -21,6 +21,7 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function($router) {
     
     Route::get('/getAllCountries', [CountryController::class, 'getAllCountries']);
 
-    Route::get('/getAllBusiness', [BusinessController::class, 'getAllBusiness']);
-    Route::post('/createBusiness', [BusinessController::class, 'createBusiness']);
+    Route::post('/createBusiness', [BusinessController::class, 'createBusiness']); // business' user signin
+    Route::get('/getSessionBusiness', [BusinessController::class, 'getSessionBusiness']);
+    Route::get('/getAllBusinesses', [BusinessController::class, 'getAllBusinesses']);
 });

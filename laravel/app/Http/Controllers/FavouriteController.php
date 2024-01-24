@@ -5,9 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Auth;
-use App\Models\Currency;
+use App\Models\Favourite;
 
-class CurrencyController extends Controller
+class FavouriteController extends Controller
 {
     use SoftDeletes;
 

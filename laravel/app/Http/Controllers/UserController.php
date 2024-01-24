@@ -35,7 +35,7 @@ class UserController extends Controller
         }
         $user = User::create(array_merge(
             $validator -> validated(),
-            ['password' => bcrypt($request -> password)]
+            ['password' => bcrypt($request -> input('password'))]
         ));
         return response() -> json([
             'message' => 'User successfully registered',

@@ -17,17 +17,25 @@ class AuthController extends Controller
     }
 
     public function login(Request $request) {
-        $validator = Validator::make($request -> all(), [
-            'email' => 'required|email',
+        $validator = Validator::make($request->all(), [
+            'username' => 'required|string',
             'password' => 'required|string',
-        ]);
-        if($validator -> fails()) {
-            return response() -> json($validator -> errors() -> toJson(), 422);
+        ]); 
+        if ($validator->fails()) {
+            return response()->json($validator->errors()->toJson(), 422);
+        } 
+        $credentials = $request -> input('username');
+        
+        // Check if the provided username is in email format
+        if (filter_var($credentials, FILTER_VALIDATE_EMAIL)) {
+            $credentials = ['email' => $credentials, 'password' => $request->input('password')];
+        } else {
+            $credentials = ['username' => $credentials, 'password' => $request->input('password')];
         }
-        if(! $token = Auth::attempt($validator -> validated())) {
-            return response() -> json(['error' => 'Unauthorized'], 401);
+        if(! $token = Auth::attempt($credentials)) {
+            return response()->json(['error' => 'Unauthorized'], 401);
         }
-        return $this -> createNewToken($token);
+        return $this->createNewToken($token);
     }
 
     public function createNewToken($token) {
