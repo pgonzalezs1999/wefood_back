@@ -46,17 +46,18 @@ class BusinessController extends Controller
             ], 422);
         }
         $business = Business::create([
-            'name' => $request -> name,
-            'tax_id' => $request -> tax_id,
-            'directions' => $request -> directions,
+            'name' => $request -> input('name'),
+            'description' => $request -> input('description'),
+            'tax_id' => $request -> input('tax_id'),
+            'directions' => $request -> input('directions'),
         ]);
         $user = User::create([
-            'username' => $request -> email,
-            'email' => $request -> email,
-            'password' => bcrypt($request->password),
-            'phone_prefix' => $request->phone_prefix,
-            'phone' => $request -> phone,
-            'id_business' => $business -> id_business,
+            'username' => $request -> input('email'),
+            'email' => $request -> input('email'),
+            'password' => bcrypt($request -> input('password')),
+            'phone_prefix' => $request -> input('phone_prefix'),
+            'phone' => $request -> input('phone'),
+            'id_business' => $business -> id,
         ]);
         try {
             $business_id = $business -> id;
@@ -89,46 +90,26 @@ class BusinessController extends Controller
         ], 200);
     }
 
-    public function getSessionBusiness() {
-        $user = Auth::user();
-        $user -> makeHidden([
+    public function getSessionBusiness(Request $request) {
+        $request -> input('mw_user') -> makeHidden([
             'created_at', 'updated_at', 'deleted_at',
             'last_login_date', 'last_latitude', 'last_longitude',
             'id_business', 'is_admin', 'sex',
         ]);
-        $business = Business::find($user -> id_business);
-        if($business == null) {
-            return response() -> json([
-                'error' => 'No business found for this user.'
-            ], 404);
-        } else if($business -> is_validated == false) {
-            return response() -> json([
-                'error' => 'Business not yet validated.'
-            ], 422);
-        } else {
-            $business -> makeHidden([
-                'created_at', 'updated_at', 'deleted_at',
-                'longitude', 'latitude', 'is_validated',
-            ]);
-            return response() -> json([
-                'user' => $user,
-                'business' => $business
-            ], 200);
-        }
+
+        $request -> input('mw_business') -> makeHidden([
+            'created_at', 'updated_at', 'deleted_at',
+            'longitude', 'latitude', 'is_validated',
+        ]);
+        return response() -> json([
+            'user' => $request -> input('mw_user'),
+            'business' => $request -> input('mw_business'),
+        ], 200);
     }
 
-    public function deleteBusiness() {
-        $user = Auth::user();
-        $id = $user -> id_business;
-        $business = Business::find($id);
-        if($business) {
-            $business -> delete();
-            $user -> delete();
-        } else {
-            return response() -> json([
-                'error' => 'Business not found'
-            ], 404);
-        }
+    public function deleteBusiness(Request $request) {
+        $request -> input('mw_user') -> delete();
+        $request -> input('mw_business') -> delete();
         return response() -> json([
             'message' => 'Business and associated user deleted successfully.'
         ], 200);
@@ -165,22 +146,11 @@ class BusinessController extends Controller
                 'error' => $validator -> errors() -> toJson()
             ], 422);
         }
-        $user = Auth::user();
-        $business = Business::find($user -> id_business);
-        if($business == null) {
-            return response() -> json([
-                'error' => 'No business found for this user.'
-            ], 404);
-        } else if($business -> is_validated == false) {
-            return response() -> json([
-                'error' => 'Business not yet validated.'
-            ], 422);
-        }
-        $business -> name = $request -> input('name');
-        $business -> save();
+        $request -> input('mw_business') -> name = $request -> input('name');
+        $request -> input('mw_business') -> save();
         return response() -> json([
             'message' => 'Business name updated successfully.',
-            'business' => $business
+            'business' => $request -> input('mw_business')
         ], 200);
     }
 
@@ -193,22 +163,11 @@ class BusinessController extends Controller
                 'error' => $validator -> errors() -> toJson()
             ], 422);
         }
-        $user = Auth::user();
-        $business = Business::find($user -> id_business);
-        if($business == null) {
-            return response() -> json([
-                'error' => 'No business found for this user.'
-            ], 404);
-        } else if($business -> is_validated == false) {
-            return response() -> json([
-                'error' => 'Business not yet validated.'
-            ], 422);
-        }
-        $business -> description = $request -> input('description');
-        $business -> save();
+        $request -> input('mw_business') -> description = $request -> input('description');
+        $request -> input('mw_business') -> save();
         return response() -> json([
             'message' => 'Business description updated successfully.',
-            'business' => $business
+            'business' => $request -> input('mw_business'),
         ], 200);
     }
 
@@ -221,22 +180,12 @@ class BusinessController extends Controller
                 'error' => $validator -> errors() -> toJson()
             ], 422);
         }
-        $user = Auth::user();
-        $business = Business::find($user -> id_business);
-        if($business == null) {
-            return response() -> json([
-                'error' => 'No business found for this user.'
-            ], 404);
-        } else if($business -> is_validated == false) {
-            return response() -> json([
-                'error' => 'Business not yet validated.'
-            ], 422);
-        }
-        $business -> directions = $request -> input('directions');
-        $business -> save();
+        
+        $request -> input('mw_business') -> directions = $request -> input('directions');
+        $request -> input('mw_business') -> save();
         return response() -> json([
             'message' => 'Business directions updated successfully.',
-            'business' => $business
+            'business' => $request -> input('mw_business'),
         ], 200);
     }
 
@@ -249,18 +198,7 @@ class BusinessController extends Controller
                 'error' => $validator -> errors() -> toJson()
             ], 422);
         }
-        $user = Auth::user();
-        $business = Business::find($user -> id_business);
-        if($business == null) {
-            return response() -> json([
-                'error' => 'No business found for this user.'
-            ], 404);
-        } else if($business -> is_validated == false) {
-            return response() -> json([
-                'error' => 'Business not yet validated.'
-            ], 422);
-        }
-        $legalCurrency = LegalCurrency::where('id_country', $business -> id_country)
+        $legalCurrency = LegalCurrency::where('id_country', $request -> input('mw_business') -> id_country)
                     -> where('id_currency', $request -> input('id_currency'))
                     -> first();
         if($legalCurrency == null) {
@@ -268,7 +206,7 @@ class BusinessController extends Controller
                 'error' => 'Currency not allowed in its country.'
             ], 400);
         }
-        $acceptedCurrency = AcceptedCurrency::where('id_business', $business -> id)
+        $acceptedCurrency = AcceptedCurrency::where('id_business', $request -> input('mw_business') -> id)
                     -> where('id_currency', $request -> input('id_currency'))
                     -> first();
         if($acceptedCurrency != null) {
@@ -278,9 +216,9 @@ class BusinessController extends Controller
         }
         $newAcceptedCurrency = AcceptedCurrency::create([
             'id_currency' => $request -> input('id_currency'),
-            'id_business' => $business -> id,
+            'id_business' => $request -> input('mw_business') -> id,
         ]);
-        $acceptedList = AcceptedCurrency::where('id_business', $business -> id) -> get() -> pluck('id_currency');
+        $acceptedList = AcceptedCurrency::where('id_business', $request -> input('mw_business') -> id) -> get() -> pluck('id_currency');
         $currencies = Currency::whereIn('id', $acceptedList) -> get();
         return response() -> json([
             'message' => 'Accepted currency added successfully.',
@@ -297,28 +235,17 @@ class BusinessController extends Controller
                 'error' => $validator -> errors() -> toJson()
             ], 422);
         }
-        $user = Auth::user();
-        $business = Business::find($user -> id_business);
-        if($business == null) {
-            return response() -> json([
-                'error' => 'No business found for this user.'
-            ], 404);
-        } else if($business -> is_validated == false) {
-            return response() -> json([
-                'error' => 'Business not yet validated.'
-            ], 422);
-        }
-        $acceptedCurrency = AcceptedCurrency::where('id_business', $business -> id)
+        $acceptedCurrency = AcceptedCurrency::where('id_business', $request -> input('mw_business') -> id)
                     -> where('id_currency', $request -> input('id_currency'))
                     -> first();
         if($acceptedCurrency != null) {
             $acceptedCurrency -> delete();
         } else {
             return response() -> json([
-                'error' => 'Currency not yet accepted.'
+                'error' => 'Currency already not accepted.'
             ], 400);
         }
-        $acceptedList = AcceptedCurrency::where('id_business', $business -> id) -> get() -> pluck('id_currency');
+        $acceptedList = AcceptedCurrency::where('id_business', $request -> input('mw_business') -> id) -> get() -> pluck('id_currency');
         $currencies = Currency::whereIn('id', $acceptedList) -> get();
         return response() -> json([
             'message' => 'Accepted currency removed successfully.',

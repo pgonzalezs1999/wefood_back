@@ -29,18 +29,18 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function($router) {
     Route::post('/removeAdmin', [AuthController::class, 'removeAdmin']) -> middleware('admin');
     
     Route::post('/createBusiness', [BusinessController::class, 'createBusiness']); // business' user signin
-    Route::get('/getSessionBusiness', [BusinessController::class, 'getSessionBusiness']);
+    Route::get('/getSessionBusiness', [BusinessController::class, 'getSessionBusiness']) -> middleware('business');
     Route::get('/getAllBusinesses', [BusinessController::class, 'getAllBusinesses']);
-    Route::post('/deleteBusiness', [BusinessController::class, 'deleteBusiness']);
+    Route::post('/deleteBusiness', [BusinessController::class, 'deleteBusiness']) -> middleware('business');
     Route::post('/validateBusiness', [BusinessController::class, 'validateBusiness']) -> middleware('admin');
-    Route::post('/updateBusinessName', [BusinessController::class, 'updateBusinessName']);
-    Route::post('/updateBusinessDescription', [BusinessController::class, 'updateBusinessDescription']);
-    Route::post('/updateBusinessDirections', [BusinessController::class, 'updateBusinessDirections']);
-    Route::post('/addBusinessCurrency', [BusinessController::class, 'addBusinessCurrency']);
-    Route::post('/removeBusinessCurrency', [BusinessController::class, 'removeBusinessCurrency']);
+    Route::post('/updateBusinessName', [BusinessController::class, 'updateBusinessName']) -> middleware('business');
+    Route::post('/updateBusinessDescription', [BusinessController::class, 'updateBusinessDescription']) -> middleware('business');
+    Route::post('/updateBusinessDirections', [BusinessController::class, 'updateBusinessDirections']) -> middleware('business');
+    Route::post('/addBusinessCurrency', [BusinessController::class, 'addBusinessCurrency']) -> middleware('business');
+    Route::post('/removeBusinessCurrency', [BusinessController::class, 'removeBusinessCurrency']) -> middleware('business');
     
-    Route::post('/createProduct', [ProductController::class, 'createProduct']);
-    Route::post('/deleteProduct', [ProductController::class, 'deleteProduct']);
+    Route::post('/createProduct', [ProductController::class, 'createProduct']) -> middleware('business');
+    Route::post('/deleteProduct', [ProductController::class, 'deleteProduct']) -> middleware('business');
     
     Route::get('/getAllCountries', [CountryController::class, 'getAllCountries']);
 });

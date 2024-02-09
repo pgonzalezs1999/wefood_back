@@ -18,17 +18,6 @@ class ProductController extends Controller
     }
 
     public function createProduct(Request $request) {
-        $user = Auth::user();
-        $business = Business::find($user -> id_business);
-        if($business == null) {
-            return response() -> json([
-                'error' => 'No business found for this user.'
-            ], 404);
-        } else if($business -> is_validated == false) {
-            return response() -> json([
-                'error' => 'Business not yet validated.'
-            ], 422);
-        }
         $validator = Validator::make($request -> all(), [
             'description' => 'required|string|min:6|max:255',
             'price' => 'required|numeric|min:0.1',
@@ -54,33 +43,6 @@ class ProductController extends Controller
                 'error' => $validator -> errors() -> toJson()
             ], 422);
         }
-        if($request -> input('type') == 'B') {
-            if($business -> id_breakfast_product != null) {
-                return response() -> json([
-                    'error' => 'Breakfast already exists.'
-                ], 422);
-            }
-            $business -> id_breakfast_product = $product -> id;
-        } else if($request -> input('type') == 'L') {
-            if($business -> id_lunch_product != null) {
-                return response() -> json([
-                    'error' => 'Lunch already exists.'
-                ], 422);
-            }
-            $business -> id_lunch_product = $product -> id;
-        } else if($request -> input('type') == 'D') {
-            if($business -> id_dinner_product != null) {
-                return response() -> json([
-                    'error' => 'Dinner already exists.'
-                ], 422);
-            }
-            $business -> id_dinner_product = $product -> id;
-        } else {
-            return response() -> json([
-                'error' => 'Invalid type.'
-            ], 422);
-        }
-        $business -> save();
         $product = Product::create([
             'description' => $request -> input('description'),
             'price' => $request -> input('price'),
@@ -100,6 +62,41 @@ class ProductController extends Controller
             'working_on_saturday' => $request -> input('working_on_saturday'),
             'working_on_sunday' => $request -> input('working_on_sunday'),
         ]);
+        try {
+            if($request -> input('type') == 'B') {
+                if($request -> input('mw_business') -> id_breakfast_product != null) {
+                    return response() -> json([
+                        'error' => 'Breakfast already exists.'
+                    ], 422);
+                }
+                $request -> input('mw_business') -> id_breakfast_product = $product -> id;
+            } else if($request -> input('type') == 'L') {
+                if($request -> input('mw_business') -> id_lunch_product != null) {
+                    return response() -> json([
+                        'error' => 'Lunch already exists.'
+                    ], 422);
+                }
+                $request -> input('mw_business') -> id_lunch_product = $product -> id;
+            } else if($request -> input('type') == 'D') {
+                if($request -> input('mw_business') -> id_dinner_product != null) {
+                    return response() -> json([
+                        'error' => 'Dinner already exists.'
+                    ], 422);
+                }
+                $request -> input('mw_business') -> id_dinner_product = $product -> id;
+            } else {
+                return response() -> json([
+                    'error' => 'Invalid type.'
+                ], 422);
+            }
+            $request -> input('mw_business') -> save();
+        } catch(\Exception $e) {
+            $product -> forceDelete();
+            print_r($e -> getMessage());
+            return response() -> json([
+                'error' => 'Could not create the product.'
+            ], 500);
+        }
         return response() -> json([
             'message' => 'Product created successfully.',
             'product' => $product
@@ -107,17 +104,6 @@ class ProductController extends Controller
     }
 
     public function deleteProduct(Request $request) {
-        $user = Auth::user();
-        $business = Business::find($user -> id_business);
-        if($business == null) {
-            return response() -> json([
-                'error' => 'No business found for this user.'
-            ], 404);
-        } else if($business -> is_validated == false) {
-            return response() -> json([
-                'error' => 'Business not yet validated.'
-            ], 422);
-        }
         $validator = Validator::make($request -> all(), [
             'type' => 'required|string|in:B,L,D', // breakfast, lunch, dinner
         ]);
@@ -127,35 +113,35 @@ class ProductController extends Controller
             ], 422);
         }
         if($request -> input('type') == 'B') {
-            $product = Product::find($business -> id_breakfast_product);
+            $product = Product::find($request -> input('mw_business') -> id_breakfast_product);
             if($product == null) {
                 return response() -> json([
                     'error' => 'No breakfast found for this business.'
                 ], 404);
             }
-            $business -> id_breakfast_product = null;
+            $request -> input('mw_business') -> id_breakfast_product = null;
         } else if($request -> input('type') == 'L') {
-            $product = Product::find($business -> id_lunch_product);
+            $product = Product::find($request -> input('mw_business') -> id_lunch_product);
             if($product == null) {
                 return response() -> json([
                     'error' => 'No lunch found for this business.'
                 ], 404);
             }
-            $business -> id_lunch_product = null;
+            $request -> input('mw_business') -> id_lunch_product = null;
         } else if($request -> input('type') == 'D') {
-            $product = Product::find($business -> id_dinner_product);
+            $product = Product::find($request -> input('mw_business') -> id_dinner_product);
             if($product == null) {
                 return response() -> json([
                     'error' => 'No dinner found for this business.'
                 ], 404);
             }
-            $business -> id_dinner_product = null;
+            $request -> input('mw_business') -> id_dinner_product = null;
         } else {
             return response() -> json([
                 'error' => 'Invalid type.'
             ], 422);
         }
-        $business -> save();
+        $request -> input('mw_business') -> save();
         $product -> delete();
         return response() -> json([
             'message' => 'Product deleted successfully.',
