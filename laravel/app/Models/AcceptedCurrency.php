@@ -11,10 +11,13 @@ class AcceptedCurrency extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'id_country',
+        'id_business',
         'id_currency',
     ];
-    
+
     protected $hidden = [
+        'created_at',
+        'updated_at',
+        'deleted_at',
     ];
 }
