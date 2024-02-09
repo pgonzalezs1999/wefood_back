@@ -36,7 +36,7 @@ class UserController extends Controller
         if($validator -> fails()) {
             return response() -> json([
                 'error' => $validator -> errors() -> toJson()
-            ], 400);
+            ], 422);
         }
         $user = User::create(array_merge(
             $validator -> validated(),
@@ -77,7 +77,7 @@ class UserController extends Controller
         if($validator -> fails()) {
             return response() -> json([
                 'error' => $validator -> errors() -> toJson()
-            ], 400);
+            ], 422);
         }
         $user = Auth::user();
         $userDb = User::find($user -> id);
@@ -97,7 +97,7 @@ class UserController extends Controller
         if($validator -> fails()) {
             return response() -> json([
                 'error' => $validator -> errors() -> toJson()
-            ], 400);
+            ], 422);
         }
         $user = Auth::user();
         $userDb = User::find($user -> id);
@@ -116,7 +116,7 @@ class UserController extends Controller
         if($validator -> fails()) {
             return response() -> json([
                 'error' => $validator -> errors() -> toJson()
-            ], 400);
+            ], 422);
         }
         $user = Auth::user();
         $userDb = User::find($user -> id);
@@ -135,7 +135,7 @@ class UserController extends Controller
         if($validator -> fails()) {
             return response() -> json([
                 'error' => $validator -> errors() -> toJson()
-            ], 400);
+            ], 422);
         }
         $user = Auth::user();
         $userDb = User::find($user -> id);
@@ -155,7 +155,7 @@ class UserController extends Controller
         if($validator -> fails()) {
             return response() -> json([
                 'error' => $validator -> errors() -> toJson()
-            ], 400);
+            ], 422);
         }
         $user = Auth::user();
         $userDb = User::find($user -> id);
@@ -182,7 +182,7 @@ class UserController extends Controller
         if($validator -> fails()) {
             return response() -> json([
                 'error' => $validator -> errors() -> toJson()
-            ], 400);
+            ], 422);
         }
         $user = Auth::user();
         $userDb = User::find($user -> id);

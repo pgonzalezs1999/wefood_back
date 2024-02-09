@@ -21,7 +21,7 @@ class AuthController extends Controller
             'username' => 'required|string',
             'password' => 'required|string',
         ]); 
-        if ($validator->fails()) {
+        if ($validator -> fails()) {
             return response()->json([
                 'error' => $validator -> errors() -> toJson()
             ], 422);
@@ -62,7 +62,7 @@ class AuthController extends Controller
         if($validator -> fails()) {
             return response() -> json([
                 'error' => $validator -> errors() -> toJson()
-            ], 400);
+            ], 422);
         }
         $adminUser = User::find($request->id);
         if ($adminUser -> is_admin) {
@@ -89,7 +89,7 @@ class AuthController extends Controller
         if($validator -> fails()) {
             return response() -> json([
                 'error' => $validator -> errors() -> toJson()
-            ], 400);
+            ], 422);
         }
         $adminUser = User::find($request->id);
         if ($adminUser -> is_admin != true) {

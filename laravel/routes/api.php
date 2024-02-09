@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CountryController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\BusinessController;
+use App\Http\Controllers\ProductController;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -37,6 +38,9 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function($router) {
     Route::post('/updateBusinessDirections', [BusinessController::class, 'updateBusinessDirections']);
     Route::post('/addBusinessCurrency', [BusinessController::class, 'addBusinessCurrency']);
     Route::post('/removeBusinessCurrency', [BusinessController::class, 'removeBusinessCurrency']);
+    
+    Route::post('/createProduct', [ProductController::class, 'createProduct']);
+    Route::post('/deleteProduct', [ProductController::class, 'deleteProduct']);
     
     Route::get('/getAllCountries', [CountryController::class, 'getAllCountries']);
 });

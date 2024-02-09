@@ -96,13 +96,16 @@ class BusinessController extends Controller
             'last_login_date', 'last_latitude', 'last_longitude',
             'id_business', 'is_admin', 'sex',
         ]);
-        $id_business = $user -> id_business;
-        if($id_business == null) {
+        $business = Business::find($user -> id_business);
+        if($business == null) {
             return response() -> json([
-                'error' => 'No business found'
+                'error' => 'No business found for this user.'
             ], 404);
+        } else if($business -> is_validated == false) {
+            return response() -> json([
+                'error' => 'Business not yet validated.'
+            ], 422);
         } else {
-            $business = Business::find($id_business);
             $business -> makeHidden([
                 'created_at', 'updated_at', 'deleted_at',
                 'longitude', 'latitude', 'is_validated',
@@ -138,13 +141,13 @@ class BusinessController extends Controller
         if($validator -> fails()) {
             return response() -> json([
                 'error' => $validator -> errors() -> toJson()
-            ], 400);
+            ], 422);
         }
         $business = Business::find($request -> id);
         if($business -> is_validated) {
             return response()->json([
                 'error' => 'Business is already validated.'
-            ], 400);
+            ], 422);
         }
         $business -> is_validated = true;
         $business -> save();
@@ -160,15 +163,19 @@ class BusinessController extends Controller
         if($validator -> fails()) {
             return response() -> json([
                 'error' => $validator -> errors() -> toJson()
-            ], 400);
+            ], 422);
         }
         $user = Auth::user();
-        if($user -> id_business == null) {
-            return response() -> json([
-                'error' => 'Business not found for this user.'
-            ], 404);
-        }
         $business = Business::find($user -> id_business);
+        if($business == null) {
+            return response() -> json([
+                'error' => 'No business found for this user.'
+            ], 404);
+        } else if($business -> is_validated == false) {
+            return response() -> json([
+                'error' => 'Business not yet validated.'
+            ], 422);
+        }
         $business -> name = $request -> input('name');
         $business -> save();
         return response() -> json([
@@ -184,15 +191,19 @@ class BusinessController extends Controller
         if($validator -> fails()) {
             return response() -> json([
                 'error' => $validator -> errors() -> toJson()
-            ], 400);
+            ], 422);
         }
         $user = Auth::user();
-        if($user -> id_business == null) {
-            return response() -> json([
-                'error' => 'Business not found for this user.'
-            ], 404);
-        }
         $business = Business::find($user -> id_business);
+        if($business == null) {
+            return response() -> json([
+                'error' => 'No business found for this user.'
+            ], 404);
+        } else if($business -> is_validated == false) {
+            return response() -> json([
+                'error' => 'Business not yet validated.'
+            ], 422);
+        }
         $business -> description = $request -> input('description');
         $business -> save();
         return response() -> json([
@@ -208,15 +219,19 @@ class BusinessController extends Controller
         if($validator -> fails()) {
             return response() -> json([
                 'error' => $validator -> errors() -> toJson()
-            ], 400);
+            ], 422);
         }
         $user = Auth::user();
-        if($user -> id_business == null) {
-            return response() -> json([
-                'error' => 'Business not found for this user.'
-            ], 404);
-        }
         $business = Business::find($user -> id_business);
+        if($business == null) {
+            return response() -> json([
+                'error' => 'No business found for this user.'
+            ], 404);
+        } else if($business -> is_validated == false) {
+            return response() -> json([
+                'error' => 'Business not yet validated.'
+            ], 422);
+        }
         $business -> directions = $request -> input('directions');
         $business -> save();
         return response() -> json([
@@ -226,21 +241,25 @@ class BusinessController extends Controller
     }
 
     public function addBusinessCurrency(Request $request) {
-        $user = Auth::user();
-        if($user -> id_business == null) {
-            return response() -> json([
-                'error' => 'Business not found for this user.'
-            ], 404);
-        }
         $validator = Validator::make($request -> all(), [
             'id_currency' => 'required|numeric|exists:currencies,id',
         ]);
         if($validator -> fails()) {
             return response() -> json([
                 'error' => $validator -> errors() -> toJson()
-            ], 400);
+            ], 422);
         }
+        $user = Auth::user();
         $business = Business::find($user -> id_business);
+        if($business == null) {
+            return response() -> json([
+                'error' => 'No business found for this user.'
+            ], 404);
+        } else if($business -> is_validated == false) {
+            return response() -> json([
+                'error' => 'Business not yet validated.'
+            ], 422);
+        }
         $legalCurrency = LegalCurrency::where('id_country', $business -> id_country)
                     -> where('id_currency', $request -> input('id_currency'))
                     -> first();
@@ -270,21 +289,25 @@ class BusinessController extends Controller
     }
 
     public function removeBusinessCurrency(Request $request) {
-        $user = Auth::user();
-        if($user -> id_business == null) {
-            return response() -> json([
-                'error' => 'Business not found for this user.'
-            ], 404);
-        }
         $validator = Validator::make($request -> all(), [
             'id_currency' => 'required|numeric|exists:currencies,id',
         ]);
         if($validator -> fails()) {
             return response() -> json([
                 'error' => $validator -> errors() -> toJson()
-            ], 400);
+            ], 422);
         }
+        $user = Auth::user();
         $business = Business::find($user -> id_business);
+        if($business == null) {
+            return response() -> json([
+                'error' => 'No business found for this user.'
+            ], 404);
+        } else if($business -> is_validated == false) {
+            return response() -> json([
+                'error' => 'Business not yet validated.'
+            ], 422);
+        }
         $acceptedCurrency = AcceptedCurrency::where('id_business', $business -> id)
                     -> where('id_currency', $request -> input('id_currency'))
                     -> first();
