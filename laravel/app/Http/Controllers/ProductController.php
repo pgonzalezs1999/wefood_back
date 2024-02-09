@@ -147,4 +147,63 @@ class ProductController extends Controller
             'message' => 'Product deleted successfully.',
         ], 200);
     }
+
+    public function updateProduct(Request $request) {
+        $validator = Validator::make($request -> all(), [
+            'id' => 'required|integer|exists:products,id',
+            'description' => 'required|string|min:6|max:255',
+            'price' => 'required|numeric|min:0.1',
+            'amount' => 'required|integer|min:1',
+            'ending_date' => 'nullable|date_format:Y-m-d H:i:s',
+            'starting_hour' => 'required|date_format:H:i',
+            'ending_hour' => 'required|date_format:H:i',
+            'vegetarian' => 'required|boolean',
+            'vegan' => 'required|boolean',
+            'bakery' => 'required|boolean',
+            'fresh' => 'required|boolean',
+            'working_on_monday' => 'required|boolean',
+            'working_on_tuesday' => 'required|boolean',
+            'working_on_wednesday' => 'required|boolean',
+            'working_on_thursday' => 'required|boolean',
+            'working_on_friday' => 'required|boolean',
+            'working_on_saturday' => 'required|boolean',
+            'working_on_sunday' => 'required|boolean',
+        ]);
+        if($validator -> fails()) {
+            return response() -> json([
+                'error' => $validator -> errors() -> toJson()
+            ], 422);
+        }
+        if($request -> input('id') != $request -> input('mw_business') -> id_breakfast_product &&
+           $request -> input('id') != $request -> input('mw_business') -> id_lunch_product &&
+           $request -> input('id') != $request -> input('mw_business') -> id_dinner_product
+        ) {
+            return response() -> json([
+                'error' => 'This product does not belong to this business.'
+            ], 422);
+        }
+        $product = Product::find($request -> input('id'));
+        $product -> description = $request -> input('description');
+        $product -> price = $request -> input('price');
+        $product -> amount = $request -> input('amount');
+        $product -> ending_date = $request -> input('ending_date');
+        $product -> starting_hour = $request -> input('starting_hour');
+        $product -> ending_hour = $request -> input('ending_hour');
+        $product -> vegetarian = $request -> input('vegetarian');
+        $product -> vegan = $request -> input('vegan');
+        $product -> bakery = $request -> input('bakery');
+        $product -> fresh = $request -> input('fresh');
+        $product -> working_on_monday = $request -> input('working_on_monday');
+        $product -> working_on_tuesday = $request -> input('working_on_tuesday');
+        $product -> working_on_wednesday = $request -> input('working_on_wednesday');
+        $product -> working_on_thursday = $request -> input('working_on_thursday');
+        $product -> working_on_friday = $request -> input('working_on_friday');
+        $product -> working_on_saturday = $request -> input('working_on_saturday');
+        $product -> working_on_sunday = $request -> input('working_on_sunday');
+        $product -> save();
+        return response() -> json([
+            'message' => 'Product created successfully.',
+            'product' => $product,
+        ], 201);
+    }
 }
