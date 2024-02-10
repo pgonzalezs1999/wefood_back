@@ -22,7 +22,6 @@ class Business extends Model
         'longitude',
         'latitude',
         'directions',
-        'id_currency',
     ];
 
     protected $hidden = [

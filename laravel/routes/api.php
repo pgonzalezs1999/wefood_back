@@ -30,6 +30,7 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function($router) {
     
     Route::post('/createBusiness', [BusinessController::class, 'createBusiness']); // business' user signin
     Route::get('/getSessionBusiness', [BusinessController::class, 'getSessionBusiness']) -> middleware('business');
+    Route::post('/getBusiness', [BusinessController::class, 'getBusiness']);
     Route::get('/getAllBusinesses', [BusinessController::class, 'getAllBusinesses']);
     Route::post('/deleteBusiness', [BusinessController::class, 'deleteBusiness']) -> middleware('business');
     Route::post('/validateBusiness', [BusinessController::class, 'validateBusiness']) -> middleware('admin');

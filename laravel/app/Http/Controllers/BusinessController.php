@@ -107,6 +107,27 @@ class BusinessController extends Controller
         ], 200);
     }
 
+    public function getBusiness(Request $request) {
+        $validator = Validator::make($request -> all(), [
+            'id' => 'required|numeric|exists:businesses,id',
+        ]);
+        if($validator -> fails()) {
+            echo $validator -> errors() -> toJson();
+            return response() -> json([
+                'error' => $validator -> errors() -> toJson()
+            ], 422);
+        }
+        $business = Business::find($request -> input('id'));
+        $business -> makeHidden([
+            'created_at', 'updated_at', 'deleted_at',
+            'longitude', 'latitude', 'is_validated',
+            'tax_id', 'id_country',
+        ]);
+        return response() -> json([
+            $business,
+        ], 200);
+    }
+
     public function deleteBusiness(Request $request) {
         $request -> input('mw_user') -> delete();
         $request -> input('mw_business') -> delete();
