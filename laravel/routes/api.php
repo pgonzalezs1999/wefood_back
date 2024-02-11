@@ -44,6 +44,7 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function($router) {
     Route::post('/deleteProduct', [ProductController::class, 'deleteProduct']) -> middleware('business');
     Route::post('/updateProduct', [ProductController::class, 'updateProduct']) -> middleware('business');
     Route::post('/addProductImage', [ProductController::class, 'addProductImage']) -> middleware('business');
+    Route::post('/deleteProductImage', [ProductController::class, 'deleteProductImage']) -> middleware('business');
     
     Route::get('/getAllCountries', [CountryController::class, 'getAllCountries']);
 });

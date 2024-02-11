@@ -225,10 +225,9 @@ class ProductController extends Controller
                 'error' => 'This product does not belong to this business.'
             ], 422);
         }
-        $product = Product::find($request -> input('id'));
         try {
             $image_path = "storage/images/{$request -> input('mw_user') -> id}/business/{$type}";
-            $nextImageNumber = $this -> getNextImageNumber($image_path);
+            $nextImageNumber = Utils::getNextImageNumber($image_path);
             if($nextImageNumber >= 10) {
                 return response() -> json([
                     'error' => 'Maximum number of images reached.'
@@ -241,9 +240,8 @@ class ProductController extends Controller
                 $image_name,
             );
         } catch(\Exception $e) {
-            print_r($e -> getMessage());
             return response() -> json([
-                'error' => 'Could not upload the image',
+                'error' => 'Could not upload the image.',
             ], 500);
         }
         return response() -> json([
@@ -251,11 +249,41 @@ class ProductController extends Controller
         ], 201);
     }
 
-    private function getNextImageNumber($imagePath) {
-        $i = 0;
-        while (Storage::disk('public')->exists("$imagePath/$i.jpg")) {
-            $i++;
+    public function deleteProductImage(Request $request) {
+        $validator = Validator::make($request -> all(), [
+            'id' => 'required|integer|exists:products,id',
+            'image_number' => 'required|integer',
+        ]);
+        if($validator -> fails()) {
+            return response() -> json([
+                'error' => $validator -> errors() -> toJson()
+            ], 422);
         }
-        return $i;
+        $type = Utils::getProductType($request -> input('mw_business') -> id, $request -> input('id'));
+        if($type == null) {
+            return response() -> json([
+                'error' => 'This product does not belong to this business.'
+            ], 422);
+        }
+        try {
+            $image_path = "storage/images/{$request -> input('mw_user') -> id}/business/{$type}";
+            $files = Storage::disk('public') -> files($image_path);
+            $filesToRename = [];
+            foreach ($files as $file) {
+                $fileName = pathinfo($file, PATHINFO_FILENAME);
+                if($fileName > $request -> input('image_number')) {
+                    $newFileName = ($fileName - 1) . '.' . pathinfo($file, PATHINFO_EXTENSION);
+                    Storage::disk('public') -> move($file, $image_path . '/' . $newFileName);
+                }
+            }
+        } catch(\Exception $e) {
+            print_r($e -> getMessage());
+            return response() -> json([
+                'error' => 'Could not delete the image.',
+            ], 500);
+        }
+        return response() -> json([
+            'message' => 'Image deleted successfully.',
+        ], 201);
     }
 }
