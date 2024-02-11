@@ -60,8 +60,8 @@ class BusinessController extends Controller
             'id_business' => $business -> id,
         ]);
         try {
-            $business_id = $business -> id;
-            $image_path = "public/storage/images/{$business_id}";
+            $user_id = $user -> id;
+            $image_path = "storage/images/{$user_id}";
             $image_name = 'profile.' . $request -> file('logo_file') -> getClientOriginalExtension();
             Storage::disk('public') -> putFileAs(
                 $image_path,
