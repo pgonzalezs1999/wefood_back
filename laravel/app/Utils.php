@@ -4,6 +4,9 @@ namespace App;
 
 use Illuminate\Support\Facades\Storage;
 use App\Models\Business;
+use App\Models\Item;
+use App\Models\Order;
+use App\Models\Product;
 
 class Utils {
 
@@ -30,5 +33,11 @@ class Utils {
             $i++;
         }
         return $i;
+    }
+
+    public static function getAvailableAmountOfItem(Item $item, Product $parentProduct) {
+        $ordered = Order::where('id_item', $item -> id) -> sum('amount');
+        $available = $parentProduct -> amount - $ordered;
+        return $available;
     }
 }
