@@ -9,6 +9,9 @@ use JWTAuth;
 use Auth;
 use Validator;
 use App\Models\User;
+use App\Models\Business;
+use App\Models\Product;
+use App\Models\Item;
 
 class UserController extends Controller
 {
@@ -61,10 +64,38 @@ class UserController extends Controller
 
     public function signout() {
         $user = auth() -> user();
+        
+        $business = Business::find($user -> id_business);
+        if($business != null) {
+            $products = [];
+            $breakfastProduct = Product::find($business -> id_breakfast_product);
+            $lunchProduct = Product::find($business -> id_lunch_product);
+            $dinnerProduct = Product::find($business -> id_dinner_product);
+            if($breakfastProduct != null) {
+                $products[] = $breakfastProduct;
+            }
+            if($lunchProduct != null) {
+                $products[] = $lunchProduct;
+            }
+            if($dinnerProduct != null) {
+                $products[] = $dinnerProduct;
+            }
+            if(count($products) > 0) {
+                foreach($products as $product) {
+                    $items = Item::where('id_product', $product -> id) -> get();
+                    if(count($items) > 0) {
+                        foreach($items as $item) {
+                            $item -> delete();
+                        }
+                    }
+                    $product -> delete();
+                }
+            }
+            $business -> delete();
+        }
         $user -> delete();
         auth() -> logout();
-
-        return response()->json([
+        return response() -> json([
             'message' => 'User successfully deleted.'
         ], 200);
     }
