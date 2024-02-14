@@ -9,6 +9,7 @@ use App\Http\Controllers\BusinessController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ItemController;
+use App\Http\Controllers\FavouriteController;
 
 Route::middleware('auth:sanctum') -> get('/user', function (Request $request) {
     return $request->user();
@@ -49,6 +50,9 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function($router) {
     Route::post('/deleteProductImage', [ProductController::class, 'deleteProductImage']) -> middleware('business');
 
     Route::post('/orderItem', [OrderController::class, 'orderItem']);
+    
+    Route::post('/addFavourite', [FavouriteController::class, 'addFavourite']);
+    Route::post('/removeFavourite', [FavouriteController::class, 'removeFavourite']);
     
     Route::get('/getAllCountries', [CountryController::class, 'getAllCountries']);
 });
