@@ -53,6 +53,7 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function($router) {
     
     Route::post('/addFavourite', [FavouriteController::class, 'addFavourite']);
     Route::post('/removeFavourite', [FavouriteController::class, 'removeFavourite']);
+    Route::get('/getSessionFavourites', [FavouriteController::class, 'getSessionFavourites']);
     
     Route::get('/getAllCountries', [CountryController::class, 'getAllCountries']);
 });

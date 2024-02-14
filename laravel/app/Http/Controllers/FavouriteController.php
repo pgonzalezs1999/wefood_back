@@ -75,4 +75,12 @@ class FavouriteController extends Controller
             'favourite' => $favourite,
         ], 200);
     }
+
+    public function getSessionFavourites(Request $request) {
+        $user = Auth::user();
+        $favourites = Favourite::where('id_user', $user -> id) -> get();
+        return response() -> json([
+            'favourites' => $favourites,
+        ], 201);
+    }
 }
