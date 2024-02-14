@@ -4,9 +4,9 @@ namespace App;
 
 use Illuminate\Support\Facades\Storage;
 use App\Models\Business;
+use App\Models\Product;
 use App\Models\Item;
 use App\Models\Order;
-use App\Models\Product;
 
 class Utils {
 

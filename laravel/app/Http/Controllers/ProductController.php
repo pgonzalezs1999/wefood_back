@@ -4,12 +4,15 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 use Auth;
+use Carbon\Carbon;
 use Validator;
 use App\Models\Product;
+use App\Models\Item;
+use App\Models\Order;
 use App\Models\Business;
 use App\Utils;
-use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -99,6 +102,23 @@ class ProductController extends Controller
                 'error' => 'Could not create the product.'
             ], 500);
         }
+        $todayField = 'working_on_' . strtolower(Carbon::now() -> englishDayOfWeek);
+        $tomorrowField = 'working_on_' . strtolower(Carbon::tomorrow() -> englishDayOfWeek);
+        $afterTomorrowField = 'working_on_' . strtolower(Carbon::tomorrow() -> addDay() -> englishDayOfWeek);
+        $weekDays = [ $todayField, $tomorrowField, $afterTomorrowField ];
+        $dates = [
+            Carbon::now() -> startOfDay(),
+            Carbon::tomorrow() -> startOfDay(),
+            Carbon::tomorrow() -> addDay() -> startOfDay(),
+        ];
+        for($i = 0; $i < 3; $i++) {
+            if($product -> {$weekDays[$i]} == 1) {
+                Item::create([
+                    'id_product' => $product -> id,
+                    'date' => $dates[$i],
+                ]);
+            }
+        }
         return response() -> json([
             'message' => 'Product created successfully.',
             'product' => $product
@@ -114,35 +134,43 @@ class ProductController extends Controller
                 'error' => $validator -> errors() -> toJson()
             ], 422);
         }
+        $chosenField = '';
         if($request -> input('type') == 'B') {
-            $product = Product::find($request -> input('mw_business') -> id_breakfast_product);
-            if($product == null) {
-                return response() -> json([
-                    'error' => 'No breakfast found for this business.'
-                ], 404);
-            }
-            $request -> input('mw_business') -> id_breakfast_product = null;
+            $chosenField = 'id_breakfast_product';
         } else if($request -> input('type') == 'L') {
-            $product = Product::find($request -> input('mw_business') -> id_lunch_product);
-            if($product == null) {
-                return response() -> json([
-                    'error' => 'No lunch found for this business.'
-                ], 404);
-            }
-            $request -> input('mw_business') -> id_lunch_product = null;
+            $chosenField = 'id_lunch_product';
         } else if($request -> input('type') == 'D') {
-            $product = Product::find($request -> input('mw_business') -> id_dinner_product);
-            if($product == null) {
-                return response() -> json([
-                    'error' => 'No dinner found for this business.'
-                ], 404);
-            }
-            $request -> input('mw_business') -> id_dinner_product = null;
+            $chosenField = 'id_dinner_product';
         } else {
             return response() -> json([
                 'error' => 'Invalid type.'
             ], 422);
         }
+        $product = Product::find($request -> input('mw_business') -> $chosenField);
+        if($product == null) {
+            return response() -> json([
+                'error' => 'No ' . $chosenField . ' found for this business.'
+            ], 404);
+        }
+        $items = Item::where('id_product', $product -> id) -> get();
+        foreach($items as $item) {
+            $orders = Order::where('id_item', $item -> id) -> get();
+            foreach($orders as $order) {
+                $reception_deadLine = Carbon::parse($item -> date) -> addDay() -> startOfDay();
+                if(
+                    Carbon::now() < $reception_deadLine &&
+                    $order -> reception_date == null
+                ) {
+                    return response() -> json([
+                        'error' => 'Cannot delete the product. There are pending orders.'
+                    ], 422);
+                }
+            }
+        }
+        foreach($items as $item) {
+            $item -> delete();
+        }
+        $request -> input('mw_business') -> $chosenField = null;
         $request -> input('mw_business') -> save();
         $product -> delete();
         return response() -> json([
