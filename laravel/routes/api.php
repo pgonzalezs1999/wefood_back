@@ -10,6 +10,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\FavouriteController;
+use App\Http\Controllers\CommentController;
 
 Route::middleware('auth:sanctum') -> get('/user', function (Request $request) {
     return $request->user();
@@ -54,6 +55,9 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function($router) {
     Route::post('/addFavourite', [FavouriteController::class, 'addFavourite']);
     Route::post('/removeFavourite', [FavouriteController::class, 'removeFavourite']);
     Route::get('/getSessionFavourites', [FavouriteController::class, 'getSessionFavourites']);
+    
+    Route::post('/addComment', [CommentController::class, 'addComment']);
+    Route::post('/deleteComment', [CommentController::class, 'deleteComment']);
     
     Route::get('/getAllCountries', [CountryController::class, 'getAllCountries']);
 });

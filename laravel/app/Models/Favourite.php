@@ -12,7 +12,7 @@ class Favourite extends Model
 
     protected $fillable = [
         'id_user',
-        'id_product',
+        'id_business',
     ];
 
     protected $hidden = [

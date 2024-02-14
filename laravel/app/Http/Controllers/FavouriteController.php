@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Auth;
 use Validator;
 use App\Models\Favourite;
-use App\Models\Product;
+use App\Models\Business;
 
 class FavouriteController extends Controller
 {
@@ -19,41 +19,41 @@ class FavouriteController extends Controller
 
     public function addFavourite(Request $request) {
         $validator = Validator::make($request -> all(), [
-            'id_product' => 'required|integer|exists:products,id'
+            'id_business' => 'required|integer|exists:businesses,id'
         ]);
         if($validator -> fails()) {
             return response() -> json([
                 'error' => $validator -> errors() -> toJson()
             ], 422);
         }
-        $product = Product::find($request -> input('id_product'));
-        if($product == null) {
+        $business = Business::find($request -> input('id_business'));
+        if($business == null) {
             return response() -> json([
-                'error' => 'Product not found.'
+                'error' => 'Business not found.'
             ], 404);
         }
         $user = Auth::user();
         $favourite = Favourite::where('id_user', $user -> id)
-                -> where('id_product', $request -> input('id_product')) 
+                -> where('id_business', $request -> input('id_business')) 
                 -> first();
         if($favourite != null) {
             return response() -> json([
-                'error' => 'Product already saved to favourites.'
+                'error' => 'Business already saved to favourites.'
             ], 409);
         }
         $favourite = Favourite::create([
             'id_user' => $user -> id,
-            'id_product' => $request -> input('id_product'),
+            'id_business' => $request -> input('id_business'),
         ]);
         return response() -> json([
-            'message' => 'Product saved to favourites successfully.',
+            'message' => 'Business saved to favourites successfully.',
             'favourite' => $favourite,
         ], 201);
     }
 
     public function removeFavourite(Request $request) {
         $validator = Validator::make($request -> all(), [
-            'id_product' => 'required|integer|exists:products,id'
+            'id_business' => 'required|integer|exists:businesses,id'
         ]);
         if($validator -> fails()) {
             return response() -> json([
@@ -62,25 +62,29 @@ class FavouriteController extends Controller
         }
         $user = Auth::user();
         $favourite = Favourite::where('id_user', $user -> id)
-                -> where('id_product', $request -> input('id_product')) 
+                -> where('id_business', $request -> input('id_business')) 
                 -> first();
         if($favourite == null) {
             return response() -> json([
-                'error' => 'Product not yet saved to favourites.'
+                'error' => 'Business not yet saved to favourites.'
             ], 409);
         }
         $favourite -> delete();
         return response() -> json([
-            'message' => 'Product removed from favourites successfully.',
+            'message' => 'Business removed from favourites successfully.',
             'favourite' => $favourite,
         ], 200);
     }
 
-    public function getSessionFavourites(Request $request) {
+    public function getSessionFavourites() {
         $user = Auth::user();
         $favourites = Favourite::where('id_user', $user -> id) -> get();
+        $businesses = Array();
+        foreach($favourites as $favourite) {
+            $businesses = array_merge($businesses, Array(Business::find($favourite -> id_business)));
+        }
         return response() -> json([
-            'favourites' => $favourites,
+            'favourites' => $businesses,
         ], 201);
     }
 }
