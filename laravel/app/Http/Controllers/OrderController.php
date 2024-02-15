@@ -81,7 +81,7 @@ class OrderController extends Controller
                             $product -> makeHidden([
                                 'description', 'price', 'ending_date',
                                 'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
-                                'vegetarian', 'vegan', 'fresh', 'bakery',
+                                'vegetarian', 'vegan', 'fresh', 'bakery', 'amount',
                             ]);
                             $item -> makeHidden([
                                 'id_product',
@@ -123,6 +123,49 @@ class OrderController extends Controller
         }
         return response() -> json([
             'orders' => $orders,
+        ], 200);
+    }
+
+    public function getOrderHistory() {
+        $user = Auth::user();
+        $orders = Order::where('id_user', $user -> id) -> get();
+        foreach($orders as $order) {
+            $item = Item::find($order -> id_item);
+            if($item != null) {
+                $product = Product::find($item -> id_product);
+                if($product != null) {
+                    $business = Business::where('id_breakfast_product', $product -> id)
+                            -> orWhere('id_lunch_product', $product -> id)
+                            -> orWhere('id_dinner_product', $product -> id)
+                            -> first();
+                    if($business != null) {
+                        $business -> makeHidden([
+                            'description', 'tax_id', 'is_validated',
+                            'id_breakfast_product', 'id_lunch_product', 'id_dinner_product',
+                            'id_currency', 'id_country',
+                            'directions', 'longitude', 'latitude',
+                        ]);
+                        $product -> makeHidden([
+                            'description', 'ending_date',
+                            'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
+                            'vegetarian', 'vegan', 'fresh', 'bakery',
+                            'starting_hour', 'ending_hour', 'amount',
+                        ]);
+                        $order -> makeHidden([
+                            'id_user', 'id_item', 'id_payment',
+                        ]);
+                        $result = [
+                            'business' => $business,
+                            'product' => $product,
+                            'order' => $order,
+                        ];
+                        $results[] = $result;
+                    }
+                }
+            }
+        }
+        return response() -> json([
+            'results' => $results,
         ], 200);
     }
 }
