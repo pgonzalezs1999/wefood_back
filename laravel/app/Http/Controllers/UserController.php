@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Models\Business;
 use App\Models\Product;
 use App\Models\Item;
+use App\Models\Order;
 
 class UserController extends Controller
 {
@@ -53,10 +54,10 @@ class UserController extends Controller
 
     public function getProfile() {
         $user = Auth::user();
-        $token = JWTAuth::parseToken() -> getToken();
-        $decodedToken = JWTAuth::manager() -> decode($token);
-        $expirationDate = Carbon::createFromTimestamp($decodedToken['exp']) -> toDateTimeString();
-        $currentTime = Carbon::createFromTimestamp(time()) -> toDateTimeString();
+        $user -> makeHidden([
+            'last_latitude', 'last_longitude', 'last_login_date',
+            'id_business',
+        ]);
         return response() -> json([
             'message' => $user,
         ], 200);

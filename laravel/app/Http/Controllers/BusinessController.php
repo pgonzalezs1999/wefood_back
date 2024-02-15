@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Http\Requests\PostStoreImageRequest;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Carbon\Carbon;
 use Auth;
 use Validator;
 use App\Models\User;
@@ -16,6 +17,9 @@ use App\Models\Comment;
 use App\Models\Currency;
 use App\Models\LegalCurrency;
 use App\Models\AcceptedCurrency;
+use App\Models\Order;
+use App\Models\Product;
+use App\Models\Item;
 
 class BusinessController extends Controller
 {
@@ -92,24 +96,41 @@ class BusinessController extends Controller
 
     public function getSessionBusiness(Request $request) {
         $request -> input('mw_user') -> makeHidden([
-            'created_at', 'updated_at', 'deleted_at',
             'last_login_date', 'last_latitude', 'last_longitude',
             'id_business', 'is_admin', 'sex',
         ]);
 
         $request -> input('mw_business') -> makeHidden([
-            'created_at', 'updated_at', 'deleted_at',
             'longitude', 'latitude', 'is_validated',
         ]);
+        $favourites = Favourite::where('id_business', $request -> input('mw_business') -> id) -> count();
+        $comments = Comment::where('id_business', $request -> input('mw_business') -> id) -> get();
+        $products = Product::where('id', $request -> input('mw_business') -> id_breakfast_product)
+                -> orWhere('id', $request -> input('mw_business') -> id_lunch_product)
+                -> orWhere('id', $request -> input('mw_business') -> id_dinner_product)
+                -> get() -> pluck('id');
+        $items = Item::whereIn('id_product', $products) -> get() -> pluck('id');
+        $totalOrders = Order::whereIn('id_item', $items) -> get() -> count();
+        $pendingItems = Item::whereIn('id_product', $products)
+                -> where(function($query) {
+                    $query -> where('date', '>', Carbon::yesterday());
+                })
+                -> get() -> pluck('id');
+        $pendingOrders = Order::whereIn('id_item', $pendingItems)
+                -> where('reception_date', null) -> get();
         return response() -> json([
             'user' => $request -> input('mw_user'),
             'business' => $request -> input('mw_business'),
+            'favourites' => $favourites,
+            'comments' => $comments,
+            'totalOrders' => $totalOrders,
+            'pendingOrders' => $pendingOrders,
         ], 200);
     }
 
     public function getBusiness(Request $request) {
         $validator = Validator::make($request -> all(), [
-            'id' => 'required|numeric|exists:businesses,id',
+            'id_business' => 'required|numeric|exists:businesses,id',
         ]);
         if($validator -> fails()) {
             echo $validator -> errors() -> toJson();
@@ -117,14 +138,31 @@ class BusinessController extends Controller
                 'error' => $validator -> errors() -> toJson()
             ], 422);
         }
-        $business = Business::find($request -> input('id'));
+        $business = Business::find($request -> input('id_business'));
         $business -> makeHidden([
-            'created_at', 'updated_at', 'deleted_at',
+            'id_breakfast_product', 'id_lunch_product', 'id_dinner_product',
             'longitude', 'latitude', 'is_validated',
             'tax_id', 'id_country',
         ]);
+        $breakfast = Product::find($business -> id_breakfast_product);
+        $lunch = Product::find($business -> id_lunch_product);
+        $dinner = Product::find($business -> id_dinner_product);
+        $favourites = Favourite::where('id_business', $request -> input('id_business')) -> count();
+        $comments = Comment::where('id_business', $request -> input('id_business')) -> get();
+        $products = Product::where('id', $business -> id_breakfast_product)
+                -> orWhere('id', $business -> id_lunch_product)
+                -> orWhere('id', $business -> id_dinner_product)
+                -> get() -> pluck('id');
+        $items = Item::whereIn('id_product', $products) -> get() -> pluck('id');
+        $totalOrders = Order::whereIn('id_item', $items) -> get() -> count();
         return response() -> json([
-            $business,
+            'business' => $business,
+            'breakfast' => $breakfast,
+            'lunch' => $lunch,
+            'dinner' => $dinner,
+            'favourites' => $favourites,
+            'comments' => $comments,
+            'totalOrders' => $totalOrders,
         ], 200);
     }
 
