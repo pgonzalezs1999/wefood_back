@@ -81,7 +81,13 @@ class FavouriteController extends Controller
         $favourites = Favourite::where('id_user', $user -> id) -> get();
         $businesses = Array();
         foreach($favourites as $favourite) {
-            $businesses = array_merge($businesses, Array(Business::find($favourite -> id_business)));
+            $newBusiness = Business::find($favourite -> id_business);
+            $newBusiness -> makeHidden([
+                'tax_id', 'is_validated',
+                'id_breakfast_product', 'id_lunch_product', 'id_dinner_product',
+                'id_currency', 'id_country', 'longitude', 'latitude',
+            ]);
+            $businesses = array_merge($businesses, Array($newBusiness));
         }
         return response() -> json([
             'favourites' => $businesses,
