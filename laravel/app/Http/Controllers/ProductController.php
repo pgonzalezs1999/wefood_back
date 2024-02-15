@@ -156,7 +156,7 @@ class ProductController extends Controller
         foreach($items as $item) {
             $orders = Order::where('id_item', $item -> id) -> get();
             foreach($orders as $order) {
-                $reception_deadLine = Carbon::parse($item -> date) -> addDay() -> startOfDay();
+                $reception_deadLine = $item -> date -> addDay() -> startOfDay();
                 if(
                     Carbon::now() < $reception_deadLine &&
                     $order -> reception_date == null
