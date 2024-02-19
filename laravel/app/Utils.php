@@ -40,4 +40,12 @@ class Utils {
         $available = $parentProduct -> amount - $ordered;
         return $available;
     }
+
+    public static function get2dDistance(float $lat1, float $long1, float $lat2, float $long2) {
+        $distance = sqrt(
+            pow($lat2 - $lat1, 2) +
+            pow($long2 - $long1, 2)
+        );
+        return $distance * 111.32;
+    }
 }

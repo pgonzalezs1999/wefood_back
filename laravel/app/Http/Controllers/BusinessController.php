@@ -8,6 +8,7 @@ use App\Http\Requests\PostStoreImageRequest;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
+use App\Utils;
 use Auth;
 use Validator;
 use App\Models\User;
@@ -43,6 +44,8 @@ class BusinessController extends Controller
             'directions' => 'required|string|min:6|max:255',
             'logo_file' => 'required|file|max:2048|image',
             'id_country' => 'required|numeric|exists:countries,id',
+            'longitude' => 'required|numeric|min:-180|max:180',
+            'latitude' => 'required|numeric|min:-90|max:90',
         ]);
         if($validator -> fails()) {
             return response() -> json([
@@ -99,7 +102,6 @@ class BusinessController extends Controller
             'last_login_date', 'last_latitude', 'last_longitude',
             'id_business', 'is_admin', 'sex',
         ]);
-
         $request -> input('mw_business') -> makeHidden([
             'longitude', 'latitude', 'is_validated',
         ]);
@@ -309,6 +311,68 @@ class BusinessController extends Controller
         return response() -> json([
             'message' => 'Accepted currency removed successfully.',
             'acceptedCurrencies' => $currencies,
+        ], 200);
+    }
+
+    public function getNearBusinesses(Request $request) {
+        $validator = Validator::make($request -> all(), [
+            'longitude' => 'required|numeric|min:-180|max:180',
+            'latitude' => 'required|numeric|min:-90|max:90',
+        ]);
+        if($validator -> fails()) {
+            return response() -> json([
+                'error' => $validator -> errors() -> toJson()
+            ], 422);
+        }
+        $user = Auth::user();
+        $businesses = Business::whereBetween('longitude', [$request-> longitude - 0.5, $request -> longitude + 0.5])
+                -> whereBetween('latitude', [$request -> latitude - 0.5, $request -> latitude + 0.5])
+                -> get();
+        foreach ($businesses as $business) {
+            $distance = Utils::get2dDistance($request -> longitude, $request -> latitude, $business -> longitude, $business -> latitude);
+            $business -> distance = $distance;
+        }
+        $sortedBusinesses = $businesses -> sortBy('distance') -> values() -> take(30) -> all();
+        $results = array();
+        foreach($sortedBusinesses as $business) {
+            $items = Item::where('id_product', $business -> id_breakfast_product)
+                    -> orWhere('id_product', $business -> id_lunch_product)
+                    -> orWhere('id_product', $business -> id_dinner_product)
+                    -> get();
+            foreach($items as $item) {
+                if($item -> date == Carbon::today() -> startOfDay()
+                    || $item -> date == Carbon::tomorrow() -> startOfDay()
+                ){
+                    $item -> makeHidden([
+                        'id_product',
+                    ]);
+                    $product = Product::find($item -> id_product);
+                    $product -> amount = Utils::getAvailableAmountOfItem($item, $product);
+                    $product -> makeHidden([
+                        'id', 'description', 'ending_date',
+                        'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
+                    ]);
+                    $favourite = Favourite::where('id_business', $business -> id)
+                            -> where('id_user', $user -> id) -> first();
+                    $is_favourite = $favourite != null;
+                    $business -> makeHidden([
+                        'id', 'description', 'tax_id', 'is_validated',
+                        'id_country', 'longitude', 'latitude', 'directions',
+                        'id_breakfast_product', 'id_lunch_product', 'id_dinner_product',
+                    ]);
+                    $result = [
+                        'item' => $item,
+                        'product' => $product,
+                        'business' => $business,
+                        'favourite' => $is_favourite,
+                    ];
+                    $results = array_merge($results, [$result]);
+                }
+            }
+        }
+        $sortedResults = collect($results) -> sortBy('item.date') -> values() -> all();
+        return response() -> json([
+            'results' => $results,
         ], 200);
     }
 }
