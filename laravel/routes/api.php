@@ -53,7 +53,9 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function($router) {
     Route::post('/orderItem', [OrderController::class, 'orderItem']);
     Route::get('/getPendingOrdersCustomer', [OrderController::class, 'getPendingOrdersCustomer']);
     Route::get('/getPendingOrdersBusiness', [OrderController::class, 'getPendingOrdersBusiness']) -> middleware('business');
-    Route::get('/getOrderHistory', [OrderController::class, 'getOrderHistory']);
+    Route::get('/getOrderHistoryCustomer', [OrderController::class, 'getOrderHistoryCustomer']);
+    Route::get('/getOrderHistoryBusiness', [OrderController::class, 'getOrderHistoryBusiness']) -> middleware('business');
+    Route::post('/completeOrderCustomer', [OrderController::class, 'completeOrderCustomer']);
     
     Route::post('/addFavourite', [FavouriteController::class, 'addFavourite']);
     Route::post('/removeFavourite', [FavouriteController::class, 'removeFavourite']);

@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use Carbon\Carbon;
 use App\Models\Product;
 use App\Models\Item;
+use App\Models\Business;
 
 class addItemsToUnlimitedProducts extends Command
 {
@@ -31,19 +32,32 @@ class addItemsToUnlimitedProducts extends Command
             Carbon::tomorrow() -> addDay() -> startOfDay(),
         ];
         foreach($products as $product) {
-            for($i = 0; $i < 3; $i++) {
-                if($product -> {$weekDays[$i]} == 1) {
-                    $todayItem = Item::where('id_product', $product -> id)
-                    -> where('date', $dates[$i])
-                    -> first();
-                    if($todayItem == null) {
-                        Item::create([
-                            'id_product' => $product -> id,
-                            'date' => $dates[$i],
-                        ]);
+            $business = Business::where('id_breakfast_product', $product -> id)
+                -> orWhere('id_lunch_product', $product -> id)
+                -> orWhere('id_dinner_product', $product -> id)
+                -> first();
+            if($business == null) {
+                $product -> delete();
+                $items = Item::where('id_product', $product -> id) -> get();
+                foreach($items as $item) {
+                    $item -> delete();
+                }
+            } else {
+                for($i = 0; $i < 3; $i++) {
+                    if($product -> {$weekDays[$i]} == 1) {
+                        $todayItem = Item::where('id_product', $product -> id)
+                        -> where('date', $dates[$i])
+                        -> first();
+                        if($todayItem == null) {
+                            Item::create([
+                                'id_product' => $product -> id,
+                                'date' => $dates[$i],
+                            ]);
+                        }
                     }
                 }
             }
+            
         }
         return Command::SUCCESS;
     }

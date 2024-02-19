@@ -25,7 +25,7 @@ class OrderController extends Controller
 
     public function orderItem(Request $request) {
         $validator = Validator::make($request -> all(), [
-            'id_item' => 'required|integer|exists:items,id',
+            'id_item' => 'required|numeric|exists:items,id',
             'amount' => 'required|integer|min:1',
         ]);
         if($validator -> fails()) {
@@ -35,11 +35,38 @@ class OrderController extends Controller
         }
         $user = Auth::user();
         $item = Item::find($request -> input('id_item'));
+        if($item == null) {
+            return response() -> json([
+                'error' => 'Item not found.',
+            ], 404);
+        }
+        $product = Product::find($item -> id_product);
+        if($product == null) {
+            return response() -> json([
+                'error' => 'Product not found.',
+            ], 404);
+        }
+        $business = Business::where('id_breakfast_product', $product -> id)
+                -> orWhere('id_lunch_product', $product -> id)
+                -> orWhere('id_dinner_product', $product -> id)
+                -> first();
+        if($business -> id_breakfast_product == $product -> id) {
+            $mealType = 'B';
+        } else if($business -> id_lunch_product == $product -> id) {
+            $mealType = 'L';
+        } else if($business -> id_dinner_product == $product -> id) {
+            $mealType = 'D';
+        }
         $parentProduct = Product::find($item -> id_product);
         $availableItems = Utils::getAvailableAmountOfItem($item, $parentProduct);
         if($request -> input('amount') > $availableItems) {
             return response() -> json([
                 'error' => 'Not enough items available.'
+            ], 422);
+        }
+        if($item -> date < Carbon::today() -> startOfDay()) {
+            return response() -> json([
+                'error' => 'Item not available anymore.'
             ], 422);
         }
         $order = Order::create([
@@ -48,6 +75,8 @@ class OrderController extends Controller
             'id_payment' => 1,
             'id_item' => $request -> input('id_item'),
             'amount' => $request -> input('amount'),
+            'id_business' => $business -> id,
+            'meal_type' => $mealType,
         ]);
         return response() -> json([
             'message' => 'Order created successfully.',
@@ -126,7 +155,7 @@ class OrderController extends Controller
         ], 200);
     }
 
-    public function getOrderHistory() {
+    public function getOrderHistoryCustomer() {
         $user = Auth::user();
         $orders = Order::where('id_user', $user -> id) -> get();
         foreach($orders as $order) {
@@ -166,6 +195,69 @@ class OrderController extends Controller
         }
         return response() -> json([
             'results' => $results,
+        ], 200);
+    }
+
+    public function getOrderHistoryBusiness(Request $request) {
+        $orders = Order::where('id_business', $request -> input('mw_business') -> id) -> get();
+        $results = array();
+        foreach($orders as $order) {
+            $order -> makeHidden([
+                'id_item', 'order_date', 'id_payment', 'id_business',
+            ]);
+            $item = Item::find($order -> id_item) -> withTrashed() -> first();
+            $item -> makeHidden([
+                'id', 'id_product',
+            ]);
+            $product = Product::find($item -> id_product) -> withTrashed() -> first();
+            $product -> makeHidden([
+                'id', 'description', 'ending_date',
+                'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
+                'starting_hour', 'ending_hour',
+            ]);
+            $results[] = [
+                'order' => $order,
+                'item' => $item,
+                'product' => $product,
+            ];
+        }
+        return response() -> json([
+            'results' => $results,
+        ], 200);
+    }
+
+    public function completeOrderCustomer(Request $request) {
+        $validator = Validator::make($request -> all(), [
+            'id_order' => 'required|integer|exists:orders,id',
+        ]);
+        if($validator -> fails()) {
+            return response() -> json([
+                'error' => $validator -> errors() -> toJson()
+            ], 422);
+        }
+        $order = Order::find($request -> input('id_order'));
+        if($order -> id_user != Auth::user() -> id) {
+            return response() -> json([
+                'error' => 'You are not allowed to complete this order.'
+            ], 403);
+        }
+        if($order -> reception_date != null) {
+            return response() -> json([
+                'error' => 'Order already completed.'
+            ], 422);
+        }
+        $item = Item::find($order -> id_item);
+        if($item -> date < Carbon::today() -> startOfDay()) {
+            return response() -> json([
+                'error' => 'Order not available anymore.'
+            ], 422);
+        }
+        $order -> reception_date = Carbon::now();
+        $order -> reception_method = 'PM'; // pickup manually
+        $order -> save();
+        return response() -> json([
+            'message' => 'Order completed successfully.',
+            'order' => $order,
         ], 200);
     }
 }
