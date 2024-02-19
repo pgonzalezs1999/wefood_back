@@ -12,6 +12,9 @@ use App\Models\Product;
 use App\Models\Item;
 use App\Models\Order;
 use App\Models\Business;
+use App\Models\Favourite;
+use App\Models\Comment;
+use App\Models\User;
 use App\Utils;
 
 class ProductController extends Controller
@@ -313,5 +316,63 @@ class ProductController extends Controller
         return response() -> json([
             'message' => 'Image deleted successfully.',
         ], 201);
+    }
+
+    public function getProduct($id) {
+        $validator = Validator::make(['id' => $id], [
+            'id' => 'required|integer|exists:products,id',
+        ]);
+        if($validator -> fails()) {
+            return response() -> json([
+                'error' => $validator -> errors() -> toJson()
+            ], 422);
+        }
+        $product = Product::find($id);
+        if($product == null) {
+            return response() -> json([
+                'error' => 'Product not found.'
+            ], 404);
+        }
+        $business = Business::where('id_breakfast_product', $product -> id)
+                -> orWhere('id_lunch_product', $product -> id)
+                -> orWhere('id_dinner_product', $product -> id)
+                -> first();
+        $business -> makeHidden([
+            'description', 'tax_id',
+            'id_breakfast_product', 'id_lunch_product', 'id_dinner_product',
+            'id_country', 'is_validated',
+        ]);
+        $product -> makeHidden([
+            'ending_date',
+            'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
+        ]);
+        $item = Item::where('id_product', $product -> id)
+                -> orderByDesc('date') -> first();
+        $available = Utils::getAvailableAmountOfItem($item, $product);
+        $favourites = Favourite::where('id_business', $business -> id) -> count();
+        $comments = Comment::where('id_business', $business -> id) -> get();
+        $comments_expanded = array();
+        foreach($comments as $comment) {
+            $user = User::find($comment -> id_user);
+            $comment -> makeHidden([
+                'id_user', 'id_business',
+            ]);
+            $user -> makeHidden([
+                'real_name', 'real_surname', 'phone', 'phone_prefix', 'sex',
+                'is_admin', 'id_business', 'email_verified',
+                'last_login_date', 'last_longitude', 'last_latitude',
+            ]);
+            $comments_expanded = [
+                'content' => $comment,
+                'user' => $user,
+            ];
+        }
+        return response() -> json([
+            'business' => $business,
+            'product' => $product,
+            'available' => $available,
+            'favourites' => $favourites,
+            'comments' => $comments_expanded,
+        ], 200);
     }
 }

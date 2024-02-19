@@ -44,6 +44,7 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function($router) {
     Route::post('/addBusinessCurrency', [BusinessController::class, 'addBusinessCurrency']) -> middleware('business');
     Route::post('/removeBusinessCurrency', [BusinessController::class, 'removeBusinessCurrency']) -> middleware('business');
     
+    Route::get('/getProduct/{id}', [ProductController::class, 'getProduct']);
     Route::post('/createProduct', [ProductController::class, 'createProduct']) -> middleware('business');
     Route::post('/deleteProduct', [ProductController::class, 'deleteProduct']) -> middleware('business');
     Route::post('/updateProduct', [ProductController::class, 'updateProduct']) -> middleware('business');
