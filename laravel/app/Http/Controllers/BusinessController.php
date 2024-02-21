@@ -325,9 +325,9 @@ class BusinessController extends Controller
             ], 422);
         }
         $user = Auth::user();
-        $businesses = Business::whereBetween('longitude', [$request-> longitude - 0.5, $request -> longitude + 0.5])
-                -> whereBetween('latitude', [$request -> latitude - 0.5, $request -> latitude + 0.5])
-                -> get();
+        $businesses = Utils::getBusinessesFromDistance(
+            $request -> latitude, $request -> longitude, 0.5
+        );
         foreach ($businesses as $business) {
             $distance = Utils::get2dDistance($request -> longitude, $request -> latitude, $business -> longitude, $business -> latitude);
             $business -> distance = $distance;

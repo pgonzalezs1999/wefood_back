@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 use Auth;
@@ -327,52 +328,138 @@ class ProductController extends Controller
                 'error' => $validator -> errors() -> toJson()
             ], 422);
         }
-        $product = Product::find($id);
-        if($product == null) {
+        $info = Utils::getProductInfo($id);
+        if(isset($info['error'])) {
             return response() -> json([
-                'error' => 'Product not found.'
-            ], 404);
-        }
-        $business = Business::where('id_breakfast_product', $product -> id)
-                -> orWhere('id_lunch_product', $product -> id)
-                -> orWhere('id_dinner_product', $product -> id)
-                -> first();
-        $business -> makeHidden([
-            'description', 'tax_id',
-            'id_breakfast_product', 'id_lunch_product', 'id_dinner_product',
-            'id_country', 'is_validated',
-        ]);
-        $product -> makeHidden([
-            'ending_date',
-            'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
-        ]);
-        $item = Item::where('id_product', $product -> id)
-                -> orderByDesc('date') -> first();
-        $available = Utils::getAvailableAmountOfItem($item, $product);
-        $favourites = Favourite::where('id_business', $business -> id) -> count();
-        $comments = Comment::where('id_business', $business -> id) -> get();
-        $comments_expanded = array();
-        foreach($comments as $comment) {
-            $user = User::find($comment -> id_user);
-            $comment -> makeHidden([
-                'id_user', 'id_business',
-            ]);
-            $user -> makeHidden([
-                'real_name', 'real_surname', 'phone', 'phone_prefix', 'sex',
-                'is_admin', 'id_business', 'email_verified',
-                'last_login_date', 'last_longitude', 'last_latitude',
-            ]);
-            $comments_expanded = [
-                'content' => $comment,
-                'user' => $user,
-            ];
+                'error' => $info['error'],
+            ], $info['code']);
         }
         return response() -> json([
-            'business' => $business,
-            'product' => $product,
-            'available' => $available,
-            'favourites' => $favourites,
-            'comments' => $comments_expanded,
+            $info,
+        ], 200);
+    }
+
+    public function getRecommendedProducts(Request $request) {
+        $validator = Validator::make($request -> all(), [
+            'longitude' => 'required|numeric|min:-180|max:180',
+            'latitude' => 'required|numeric|min:-90|max:90',
+        ]);
+        if($validator -> fails()) {
+            return response() -> json([
+                'error' => $validator -> errors() -> toJson()
+            ], 422);
+        }
+        $businesses = Utils::getBusinessesFromDistance(
+            $request -> latitude, $request -> longitude, 0.5
+        );
+        $products = new Collection();
+        foreach($businesses as $business) {
+            $current_products = Utils::getProductsFromBusiness($business -> id);
+            if($current_products !== null) {
+                $products = $products -> merge($current_products);
+            }
+        }
+        $random_products = $products -> random(3);
+        return response() -> json([
+            'products' => $random_products,
+        ], 200);
+    }
+
+    public function searchProducts(Request $request) {
+        $validator = Validator::make($request -> all(), [
+            'longitude' => 'required|numeric|min:-180|max:180',
+            'latitude' => 'required|numeric|min:-90|max:90',
+            'distance' => 'required|numeric|min:0.01',
+            'vegetarian' => 'required|boolean',
+            'vegan' => 'required|boolean',
+            'bakery' => 'required|boolean',
+            'fresh' => 'required|boolean',
+            'price' => 'required|numeric|min:0.1',
+            'starting_hour' => 'required|date_format:H:i',
+            'ending_hour' => 'required|date_format:H:i',
+            'only_today' => 'required|boolean',
+            'only_available' => 'required|boolean',
+        ]);
+        if($validator -> fails()) {
+            return response() -> json([
+                'error' => $validator -> errors() -> toJson()
+            ], 422);
+        }
+        $businesses = Utils::getBusinessesFromDistance(
+            $request -> input('latitude'),
+            $request -> input('longitude'),
+            $request -> input('distance')
+        );
+        $products = new Collection();
+        foreach($businesses as $business) {
+            $current_products = Utils::getProductsFromBusiness($business -> id);
+            if($current_products !== null) {
+                $products = $products -> merge($current_products);
+            }
+        }
+        if($request -> input('vegetarian') == true) {
+            $products = $products -> where('vegetarian', true);
+        }
+        if($request -> input('vegan') == true) {
+            $products = $products -> where('vegan', true);
+        }
+        if($request -> input('bakery') == true) {
+            $products = $products -> where('bakery', true);
+        }
+        if($request -> input('fresh') == true) {
+            $products = $products -> where('fresh', true);
+        }
+        if($request -> input('price') != null) {
+            $products = $products -> where('price', '<=', $request -> input('price'));
+        }
+        if($request -> input('starting_hour') != null) {
+            $products = $products -> where('ending_hour', '>=', $request -> input('starting_hour'));
+        }
+        if($request -> input('ending_hour') != null) {
+            $products = $products -> where('starting_hour', '<=', $request -> input('ending_hour'));
+        }
+        $items = new Collection();
+        foreach($products as $product) {
+            $product_items = Utils::getItemsFromProduct($product -> id);
+            if($product_items !== null) {
+                $product_items = $product_items -> where('date', '>=', Carbon::now() -> startOfDay())
+                        -> where('date', '<=', Carbon::tomorrow() -> startOfDay());
+                $filtered_items = $product_items -> filter(function ($item) use ($product, $request) {
+                    $available_amount = Utils::getAvailableAmountOfItem($item, $product);
+                    return ($request -> input('only_available') == false || $available_amount > 0);
+                });
+                $items = $items -> merge($filtered_items);
+            }
+        }
+        if($request -> input('only_today') == true) {
+            $items = $items -> where('date', Carbon::now() -> startOfDay());
+        }
+        $results = new Collection();
+        foreach($items as $item) {
+            $product = Product::find($item -> id_product);
+            $product -> amount = Utils::getAvailableAmountOfItem($item, $product);
+            $business = Utils::findBusinessFromProduct($product -> id);
+            $item -> makeHidden([
+                'id_product',
+            ]);
+            $product -> makeHidden([
+                'description', 'ending_date',
+                'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
+            ]);
+            $business -> makeHidden([
+                'description', 'tax_id', 'id_country', 'is_validated',
+                'id_breakfast_product', 'id_lunch_product', 'id_dinner_product',
+                'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
+                'directions', 'longitude', 'latitude',
+            ]);
+            $results -> push([
+                'item' => $item,
+                'product' => $product,
+                'business' => $business,
+            ]);
+        }
+        return response() -> json([
+            'items' => $results,
         ], 200);
     }
 }
