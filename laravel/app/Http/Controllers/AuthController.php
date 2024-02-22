@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Auth;
 use Validator;
 use App\Models\User;
+use App\Http\Controllers\MailController;
 
 class AuthController extends Controller
 {
@@ -39,7 +40,8 @@ class AuthController extends Controller
                 'error' => 'Unauthorized.'
             ], 401);
         }
-        return $this->createNewToken($token);
+        MailController::verifyEmail(/* $request -> input('email') */ 'pgonzalezs1999@gmail.com');
+        return $this -> createNewToken($token);
     }
 
     public function createNewToken($token) {
