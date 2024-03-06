@@ -225,4 +225,20 @@ class UserController extends Controller
             'user' => $userDb
         ], 200);
     }
+
+    public function verifyEmail(Request $request) {
+        $user = Auth::user();
+        $userDb = User::find($user -> id);
+        if($userDb -> email_verified) {
+            return response() -> json([
+                'error' => 'Email already verified.'
+            ], 400);
+        }
+        $userDb -> email_verified = true;
+        $userDb -> save();
+        return response() -> json([
+            'message' => 'Email verified successfully.',
+            'user' => $userDb
+        ], 200);
+    }
 }

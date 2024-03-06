@@ -48,20 +48,23 @@ class Handler extends ExceptionHandler
      */
     public function register()
     {
-        $this->renderable(function(TokenInvalidException $e, $request){
+        $this -> renderable(function(TokenInvalidException $e, $request){
             return Response::json([
-                'error' => 'Invalid token'
+                'error' => 'Invalid token',
+                'code' => 401,
             ], 401);
         });
-        $this->renderable(function (TokenExpiredException $e, $request) {
+        $this -> renderable(function (TokenExpiredException $e, $request) {
             return Response::json([
-                'error' => 'Token has Expired'
+                'error' => 'Token expired',
+                'code' => 401,
             ], 401);
         });
 
-        $this->renderable(function (JWTException $e, $request) {
+        $this -> renderable(function (JWTException $e, $request) {
             return Response::json([
-                'error' => 'Token not parsed'
+                'error' => 'Token not parsed',
+                'code' => 401,
             ], 401);
         });
     }

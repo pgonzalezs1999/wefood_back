@@ -314,7 +314,7 @@ class BusinessController extends Controller
         ], 200);
     }
 
-    public function getNearBusinesses(Request $request) {
+    public function getNearbyBusinesses(Request $request) {
         $validator = Validator::make($request -> all(), [
             'longitude' => 'required|numeric|min:-180|max:180',
             'latitude' => 'required|numeric|min:-90|max:90',
@@ -343,36 +343,31 @@ class BusinessController extends Controller
                 if($item -> date == Carbon::today() -> startOfDay()
                     || $item -> date == Carbon::tomorrow() -> startOfDay()
                 ){
-                    $item -> makeHidden([
-                        'id_product',
-                    ]);
+                    $favourite = Favourite::where('id_business', $business -> id)
+                            -> where('id_user', $user -> id) -> first();
+                    $is_favourite = ($favourite != null);
                     $product = Product::find($item -> id_product);
                     $product -> amount = Utils::getAvailableAmountOfItem($item, $product);
                     $product -> makeHidden([
-                        'id', 'description', 'ending_date',
+                        'description', 'ending_date',
                         'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
                     ]);
-                    $favourite = Favourite::where('id_business', $business -> id)
-                            -> where('id_user', $user -> id) -> first();
-                    $is_favourite = $favourite != null;
+                    $product -> date = $item -> date;
+                    $product -> favourite = $is_favourite;
                     $business -> makeHidden([
-                        'id', 'description', 'tax_id', 'is_validated',
+                        'description', 'tax_id', 'is_validated',
                         'id_country', 'longitude', 'latitude', 'directions',
-                        'id_breakfast_product', 'id_lunch_product', 'id_dinner_product',
+                        'id_breakfast_product', 'id_lunch_product', 'id_dinner_product', 'distance',
                     ]);
-                    $result = [
-                        'item' => $item,
-                        'product' => $product,
-                        'business' => $business,
-                        'favourite' => $is_favourite,
-                    ];
-                    $results = array_merge($results, [$result]);
+                    $business -> rate = Utils::getBusinessRate($business -> id);
+                    $product -> business = $business;
+                    $results = array_merge($results, [$product]);
                 }
             }
         }
         $sortedResults = collect($results) -> sortBy('item.date') -> values() -> all();
         return response() -> json([
-            'results' => $results,
+            'products' => $results,
         ], 200);
     }
 }

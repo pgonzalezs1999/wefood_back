@@ -24,36 +24,46 @@ class AuthController extends Controller
         ]); 
         if ($validator -> fails()) {
             return response()->json([
-                'error' => $validator -> errors() -> toJson()
+                'error' => $validator -> errors() -> toJson(),
+                'code' => 422,
             ], 422);
         } 
         $credentials = $request -> input('username');
         
         // Check if the provided username is in email format
-        if (filter_var($credentials, FILTER_VALIDATE_EMAIL)) {
+        if(filter_var($credentials, FILTER_VALIDATE_EMAIL)) {
             $credentials = ['email' => $credentials, 'password' => $request -> input('password')]; // Checks login with email-password
         } else {
             $credentials = ['username' => $credentials, 'password' => $request -> input('password')]; // Checks login with username-password
         }
         if(! $token = Auth::attempt($credentials)) {
             return response()->json([
-                'error' => 'Unauthorized.'
+                'error' => 'Unauthorized.',
+                'code' => 401,
             ], 401);
         }
-        MailController::verifyEmail(/* $request -> input('email') */ 'pgonzalezs1999@gmail.com');
-        return $this -> createNewToken($token);
-    }
-
-    public function createNewToken($token) {
         return response() -> json([
             'access_token' => $token,
+            'expires_in' => auth() -> factory() -> getTTL() * 60,
+            'code' => 200,
+        ], 200);
+    }
+
+    public function refresh(Request $request) {
+        $token = JWTAuth::getToken();
+        JWTAuth::refresh($token);
+        return response() -> json([
+            'access_token' => auth() -> refresh(),
+            'expires_in' => auth() -> factory() -> getTTL() * 60,
+            'code' => 200,
         ], 200);
     }
 
     public function logout() {
         auth() -> logout();
         return response() -> json([
-            'error' => 'User successfully logged out.'
+            'error' => 'User successfully logged out.',
+            'code' => 400,
         ], 400);
     }
 
@@ -63,24 +73,28 @@ class AuthController extends Controller
         ]);
         if($validator -> fails()) {
             return response() -> json([
-                'error' => $validator -> errors() -> toJson()
+                'error' => $validator -> errors() -> toJson(),
+                'code' => 422,
             ], 422);
         }
         $adminUser = User::find($request->id);
         if ($adminUser -> is_admin) {
             return response()->json([
-                'error' => 'User is already an admin.'
+                'error' => 'User is already an admin.',
+                'code' => 400,
             ], 400);
         }
         if ($adminUser -> id_business != null) {
             return response()->json([
-                'error' => 'Users that own a business cannot be admin.'
+                'error' => 'Users that own a business cannot be admin.',
+                'code' => 400,
             ], 400);
         }
         $adminUser -> is_admin = true;
         $adminUser -> save();
         return response() -> json([
-            'message' => 'Admin successfully added.'
+            'message' => 'Admin successfully added.',
+            'code' => 200,
         ], 200);
     }
 
@@ -90,19 +104,22 @@ class AuthController extends Controller
         ]);
         if($validator -> fails()) {
             return response() -> json([
-                'error' => $validator -> errors() -> toJson()
+                'error' => $validator -> errors() -> toJson(),
+                'code' => 422,
             ], 422);
         }
         $adminUser = User::find($request->id);
         if ($adminUser -> is_admin != true) {
             return response()->json([
-                'error' => 'User is not an admin.'
+                'error' => 'User is not an admin.',
+                'code' => 400,
             ], 400);
         }
         $adminUser -> is_admin = false;
         $adminUser -> save();
         return response() -> json([
-            'message' => 'Admin successfully removed.'
+            'message' => 'Admin successfully removed.',
+            'code' => 200,
         ], 200);
     }
 }

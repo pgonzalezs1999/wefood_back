@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Auth;
 use Validator;
+use App\Utils;
 use App\Models\Favourite;
 use App\Models\Business;
 
@@ -91,6 +93,43 @@ class FavouriteController extends Controller
         }
         return response() -> json([
             'favourites' => $businesses,
+        ], 201);
+    }
+
+    public function getFavouriteProducts() {
+        $user = Auth::user();
+        $favourites = Favourite::where('id_user', $user -> id) -> get();
+        $businesses = Array();
+        foreach($favourites as $favourite) {
+            $newBusiness = Business::find($favourite -> id_business);
+            $newBusiness -> makeHidden([
+                'tax_id', 'is_validated', 'description', 'directions',
+                'id_breakfast_product', 'id_lunch_product', 'id_dinner_product',
+                'id_currency', 'id_country', 'longitude', 'latitude',
+            ]);
+            $favourite = Favourite::where('id_business', $newBusiness -> id)
+                -> where('id_user', $user -> id) -> first();
+            $is_favourite = ($favourite != null);
+            $newBusiness -> rate = Utils::getBusinessRate($newBusiness -> id);
+            $businesses = array_merge($businesses, Array($newBusiness));
+        }
+        $products = new Collection();
+        foreach($businesses as $business) {
+            $business_products = Utils::getProductsFromBusiness($business -> id);
+            if($business_products !== null) {
+                foreach($business_products as $product) {
+                    $product -> favourite = $is_favourite;
+                    $product -> business = $business;
+                    $product -> makeHidden([
+                        'description', 'amount', 'ending_date',
+                        'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
+                    ]);
+                    $products = $products -> push($product);
+                }
+            }
+        }
+        return response() -> json([
+            'products' => $products,
         ], 201);
     }
 }

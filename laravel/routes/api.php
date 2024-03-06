@@ -26,8 +26,10 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function($router) {
     Route::post('/updateEmail', [UserController::class, 'updateEmail']);
     Route::post('/updatePhone', [UserController::class, 'updatePhone']);
     Route::post('/updateSex', [UserController::class, 'updateSex']);
+    Route::post('/verifyEmail', [UserController::class, 'verifyEmail']);
     
     Route::post('/login', [AuthController::class, 'login']) -> name('login');
+    Route::post('/refresh', [AuthController::class, 'refresh']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/addAdmin', [AuthController::class, 'addAdmin']) -> middleware('admin');
     Route::post('/removeAdmin', [AuthController::class, 'removeAdmin']) -> middleware('admin');
@@ -43,7 +45,7 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function($router) {
     Route::post('/updateBusinessDirections', [BusinessController::class, 'updateBusinessDirections']) -> middleware('business');
     Route::post('/addBusinessCurrency', [BusinessController::class, 'addBusinessCurrency']) -> middleware('business');
     Route::post('/removeBusinessCurrency', [BusinessController::class, 'removeBusinessCurrency']) -> middleware('business');
-    Route::post('/getNearBusinesses', [BusinessController::class, 'getNearBusinesses']);
+    Route::post('/getNearbyBusinesses', [BusinessController::class, 'getNearbyBusinesses']);
     
     Route::get('/getProduct/{id}', [ProductController::class, 'getProduct']);
     Route::post('/createProduct', [ProductController::class, 'createProduct']) -> middleware('business');
@@ -64,6 +66,7 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function($router) {
     Route::post('/addFavourite', [FavouriteController::class, 'addFavourite']);
     Route::post('/removeFavourite', [FavouriteController::class, 'removeFavourite']);
     Route::get('/getSessionFavourites', [FavouriteController::class, 'getSessionFavourites']);
+    Route::get('/getFavouriteProducts', [FavouriteController::class, 'getFavouriteProducts']);
     
     Route::post('/addComment', [CommentController::class, 'addComment']);
     Route::post('/deleteComment', [CommentController::class, 'deleteComment']);

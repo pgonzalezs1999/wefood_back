@@ -155,4 +155,17 @@ class Utils {
                 -> first();
         return $business;
     }
+
+    public static function getBusinessRate(int $id_business) {
+        $comments = Comment::where('id_business', $id_business) -> get();
+        if(count($comments) == 0) {
+            return 0;
+        }
+        $rate = 0;
+        foreach($comments as $comment) {
+            $rate += $comment -> rate;
+        }
+        $rate /= count($comments);
+        return $rate;
+    }
 }
