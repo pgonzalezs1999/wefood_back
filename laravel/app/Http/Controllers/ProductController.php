@@ -334,9 +334,10 @@ class ProductController extends Controller
                 'error' => $info['error'],
             ], $info['code']);
         }
-        return response() -> json([
+        return response() -> json(
             $info,
-        ], 200);
+            200
+        );
     }
 
     public function getRecommendedProducts(Request $request) {
@@ -370,10 +371,14 @@ class ProductController extends Controller
                     $product -> favourite = $is_favourite;
                     $product -> business = $business;
                     $product -> makeHidden([
-                        'description', 'amount', 'ending_date',
+                        'description', 'ending_date',
                         'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
                     ]);
-                    $products = $products -> push($product);
+                    $products = $products -> push([
+                        'product' => $product,
+                        'business' => $business,
+                        'favourite' => $is_favourite,
+                    ]);
                 }
             }
         }

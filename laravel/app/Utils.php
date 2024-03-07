@@ -79,14 +79,26 @@ class Utils {
         ]);
         $item = Item::where('id_product', $product -> id)
                 -> orderByDesc('date') -> first();
+        if($item == null) {
+            return [
+                'error' => 'Item not found.',
+                'code' => '404',
+            ];
+        }
         $available = Utils::getAvailableAmountOfItem($item, $product);
         $favourites = Favourite::where('id_business', $business -> id) -> count();
         $comments = Comment::where('id_business', $business -> id) -> get();
         $comments_expanded = array();
         foreach($comments as $comment) {
             $user = User::find($comment -> id_user);
+            $product -> makeHidden([
+                'description',
+            ]);
             $comment -> makeHidden([
                 'id_user', 'id_business',
+            ]);
+            $business -> makeHidden([
+                'longitude', 'latitude',
             ]);
             $user -> makeHidden([
                 'real_name', 'real_surname', 'phone', 'phone_prefix', 'sex',
@@ -99,8 +111,9 @@ class Utils {
             ];
         }
         return [
-            'business' => $business,
             'product' => $product,
+            'business' => $business,
+            'item' => $item,
             'available' => $available,
             'favourites' => $favourites,
             'comments' => $comments_expanded,

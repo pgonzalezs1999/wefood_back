@@ -113,23 +113,25 @@ class FavouriteController extends Controller
             $newBusiness -> rate = Utils::getBusinessRate($newBusiness -> id);
             $businesses = array_merge($businesses, Array($newBusiness));
         }
-        $products = new Collection();
+        $results = new Collection();
         foreach($businesses as $business) {
             $business_products = Utils::getProductsFromBusiness($business -> id);
             if($business_products !== null) {
                 foreach($business_products as $product) {
-                    $product -> favourite = $is_favourite;
-                    $product -> business = $business;
                     $product -> makeHidden([
                         'description', 'amount', 'ending_date',
                         'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
                     ]);
-                    $products = $products -> push($product);
+                    $results = $results -> push([
+                        'product' => $product,
+                        'business' => $business,
+                        'favourite' => $is_favourite,
+                    ]);
                 }
             }
         }
         return response() -> json([
-            'products' => $products,
+            'products' => $results,
         ], 201);
     }
 }

@@ -352,7 +352,6 @@ class BusinessController extends Controller
                         'description', 'ending_date',
                         'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
                     ]);
-                    $product -> date = $item -> date;
                     $product -> favourite = $is_favourite;
                     $business -> makeHidden([
                         'description', 'tax_id', 'is_validated',
@@ -360,8 +359,12 @@ class BusinessController extends Controller
                         'id_breakfast_product', 'id_lunch_product', 'id_dinner_product', 'distance',
                     ]);
                     $business -> rate = Utils::getBusinessRate($business -> id);
-                    $product -> business = $business;
-                    $results = array_merge($results, [$product]);
+                    $results = array_merge($results, [[
+                        'product' => $product,
+                        'business' => $business,
+                        'item' => $item,
+                        'favourite' => $is_favourite,
+                    ]]);
                 }
             }
         }
