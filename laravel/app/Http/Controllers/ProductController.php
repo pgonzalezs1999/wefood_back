@@ -334,6 +334,7 @@ class ProductController extends Controller
                 'error' => $info['error'],
             ], $info['code']);
         }
+        $info['business'] -> rate = Utils::getBusinessRate($info['business'] -> id);
         return response() -> json(
             $info,
             200

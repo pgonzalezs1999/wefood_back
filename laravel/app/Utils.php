@@ -4,6 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Collection;
 use App\Models\User;
 use App\Models\Business;
 use App\Models\Product;
@@ -79,16 +80,13 @@ class Utils {
         ]);
         $item = Item::where('id_product', $product -> id)
                 -> orderByDesc('date') -> first();
-        if($item == null) {
-            return [
-                'error' => 'Item not found.',
-                'code' => '404',
-            ];
+        $available = null;
+        if($item != null) {
+            $available = Utils::getAvailableAmountOfItem($item, $product);
         }
-        $available = Utils::getAvailableAmountOfItem($item, $product);
         $favourites = Favourite::where('id_business', $business -> id) -> count();
         $comments = Comment::where('id_business', $business -> id) -> get();
-        $comments_expanded = array();
+        $comments_expanded = new Collection();
         foreach($comments as $comment) {
             $user = User::find($comment -> id_user);
             $product -> makeHidden([
@@ -105,10 +103,11 @@ class Utils {
                 'is_admin', 'id_business', 'email_verified',
                 'last_login_date', 'last_longitude', 'last_latitude',
             ]);
-            $comments_expanded = [
+            $comments_expanded -> push([
                 'content' => $comment,
                 'user' => $user,
-            ];
+            ]);
+            $business -> comments = $comments_expanded;
         }
         return [
             'product' => $product,
@@ -116,7 +115,6 @@ class Utils {
             'item' => $item,
             'available' => $available,
             'favourites' => $favourites,
-            'comments' => $comments_expanded,
         ];
     }
 
