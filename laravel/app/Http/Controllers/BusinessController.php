@@ -363,7 +363,7 @@ class BusinessController extends Controller
                         'product' => $product,
                         'business' => $business,
                         'item' => $item,
-                        'favourite' => $is_favourite,
+                        'is_favourite' => $is_favourite,
                     ]]);
                 }
             }

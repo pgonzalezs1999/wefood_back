@@ -30,7 +30,7 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function($router) {
     
     Route::post('/login', [AuthController::class, 'login']) -> name('login');
     Route::post('/refresh', [AuthController::class, 'refresh']);
-    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/logout', [AuthController::class, 'logout']);
     Route::post('/addAdmin', [AuthController::class, 'addAdmin']) -> middleware('admin');
     Route::post('/removeAdmin', [AuthController::class, 'removeAdmin']) -> middleware('admin');
     

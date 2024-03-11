@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Auth;
 use Validator;
+use Carbon\Carbon;
 use App\Models\User;
 use App\Http\Controllers\MailController;
 
@@ -25,13 +26,10 @@ class AuthController extends Controller
         if ($validator -> fails()) {
             return response()->json([
                 'error' => $validator -> errors() -> toJson(),
-                'code' => 422,
             ], 422);
         } 
         $credentials = $request -> input('username');
-        
-        // Check if the provided username is in email format
-        if(filter_var($credentials, FILTER_VALIDATE_EMAIL)) {
+        if(filter_var($credentials, FILTER_VALIDATE_EMAIL)) { // Check if the provided username is in email format
             $credentials = ['email' => $credentials, 'password' => $request -> input('password')]; // Checks login with email-password
         } else {
             $credentials = ['username' => $credentials, 'password' => $request -> input('password')]; // Checks login with username-password
@@ -39,13 +37,15 @@ class AuthController extends Controller
         if(! $token = Auth::attempt($credentials)) {
             return response()->json([
                 'error' => 'Unauthorized.',
-                'code' => 401,
             ], 401);
         }
+        $user = Auth::user();
+        $user = Auth::user();
+        $user -> last_login_date = Carbon::now();
+        $user -> save();
         return response() -> json([
             'access_token' => $token,
             'expires_in' => auth() -> factory() -> getTTL() * 60,
-            'code' => 200,
         ], 200);
     }
 
@@ -55,16 +55,14 @@ class AuthController extends Controller
         return response() -> json([
             'access_token' => auth() -> refresh(),
             'expires_in' => auth() -> factory() -> getTTL() * 60,
-            'code' => 200,
         ], 200);
     }
 
     public function logout() {
         auth() -> logout();
         return response() -> json([
-            'error' => 'User successfully logged out.',
-            'code' => 400,
-        ], 400);
+            'message' => 'User successfully logged out.',
+        ], 200);
     }
 
     public function addAdmin(Request $request) {
@@ -74,27 +72,23 @@ class AuthController extends Controller
         if($validator -> fails()) {
             return response() -> json([
                 'error' => $validator -> errors() -> toJson(),
-                'code' => 422,
             ], 422);
         }
         $adminUser = User::find($request->id);
         if ($adminUser -> is_admin) {
             return response()->json([
                 'error' => 'User is already an admin.',
-                'code' => 400,
             ], 400);
         }
         if ($adminUser -> id_business != null) {
             return response()->json([
                 'error' => 'Users that own a business cannot be admin.',
-                'code' => 400,
             ], 400);
         }
         $adminUser -> is_admin = true;
         $adminUser -> save();
         return response() -> json([
             'message' => 'Admin successfully added.',
-            'code' => 200,
         ], 200);
     }
 
@@ -105,21 +99,18 @@ class AuthController extends Controller
         if($validator -> fails()) {
             return response() -> json([
                 'error' => $validator -> errors() -> toJson(),
-                'code' => 422,
             ], 422);
         }
         $adminUser = User::find($request->id);
         if ($adminUser -> is_admin != true) {
             return response()->json([
                 'error' => 'User is not an admin.',
-                'code' => 400,
             ], 400);
         }
         $adminUser -> is_admin = false;
         $adminUser -> save();
         return response() -> json([
             'message' => 'Admin successfully removed.',
-            'code' => 200,
         ], 200);
     }
 }

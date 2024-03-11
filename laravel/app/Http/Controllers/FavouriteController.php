@@ -125,7 +125,7 @@ class FavouriteController extends Controller
                     $results = $results -> push([
                         'product' => $product,
                         'business' => $business,
-                        'favourite' => $is_favourite,
+                        'is_favourite' => $is_favourite,
                     ]);
                 }
             }

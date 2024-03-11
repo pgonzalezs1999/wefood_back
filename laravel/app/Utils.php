@@ -70,9 +70,8 @@ class Utils {
                 -> orWhere('id_dinner_product', $product -> id)
                 -> first();
         $business -> makeHidden([
-            'description', 'tax_id',
+            'tax_id', 'id_country', 'is_validated',
             'id_breakfast_product', 'id_lunch_product', 'id_dinner_product',
-            'id_country', 'is_validated',
         ]);
         $product -> makeHidden([
             'ending_date',

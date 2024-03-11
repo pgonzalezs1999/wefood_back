@@ -334,6 +334,13 @@ class ProductController extends Controller
                 'error' => $info['error'],
             ], $info['code']);
         }
+        $is_favourite = Favourite::where('id_business', $info['business'] -> id)
+            -> where('id_user', Auth::user() -> id) -> first();
+        if($is_favourite != null) {
+            $info['is_favourite'] = true;
+        } else {
+            $info['is_favourite'] = false;
+        }
         $info['business'] -> rate = Utils::getBusinessRate($info['business'] -> id);
         return response() -> json(
             $info,
@@ -378,7 +385,7 @@ class ProductController extends Controller
                     $products = $products -> push([
                         'product' => $product,
                         'business' => $business,
-                        'favourite' => $is_favourite,
+                        'is_favourite' => $is_favourite,
                     ]);
                 }
             }
