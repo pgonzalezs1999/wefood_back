@@ -19,10 +19,10 @@ class UserController extends Controller
     use SoftDeletes;
 
     public function __construct() {
-        $this -> middleware('auth:api', ['except' => ['signin']]);
+        $this -> middleware('auth:api', ['except' => ['signin', 'checkUsernameAvailability', 'checkEmailAvailability']]);
     }
 
-    public function signin(Request $request) {
+    public function signIn(Request $request) {
         $validator = Validator::make($request -> all(), [
             'username' => 'required|string|min:5|max:50|unique:users',
             'email' => 'required|string|email|max:50|unique:users',
@@ -103,8 +103,8 @@ class UserController extends Controller
 
     public function updateRealName(Request $request) {
         $validator = Validator::make($request -> all(), [
-            'real_name' => 'required|string|min:6|max:50',
-            'real_surname' => 'required|string|min:6|max:50',
+            'real_name' => 'required|string|min:2|max:30',
+            'real_surname' => 'required|string|min:2|max:30',
         ]);
         if($validator -> fails()) {
             return response() -> json([
@@ -239,6 +239,48 @@ class UserController extends Controller
         return response() -> json([
             'message' => 'Email verified successfully.',
             'user' => $userDb
+        ], 200);
+    }
+
+    public function checkUsernameAvailability(Request $request) {
+        $validator = Validator::make($request -> all(), [
+            'username' => 'required',
+        ]);
+        if($validator -> fails()) {
+            return response() -> json([
+                'error' => $validator -> errors() -> toJson()
+            ], 400);
+        }
+        $username = $request -> input('username');
+        $user = User::where('username', $username) -> first();
+        if($user == null) {
+            return response() -> json([
+                'availability' => true,
+            ], 200);
+        }
+        return response() -> json([
+            'availability' => false,
+        ], 200);
+    }
+
+    public function checkEmailAvailability(Request $request) {
+        $validator = Validator::make($request -> all(), [
+            'email' => 'required',
+        ]);
+        if($validator -> fails()) {
+            return response() -> json([
+                'error' => $validator -> errors() -> toJson()
+            ], 400);
+        }
+        $email = $request -> input('email');
+        $user = User::where('email', $email) -> first();
+        if($user == null) {
+            return response() -> json([
+                'availability' => true,
+            ], 200);
+        }
+        return response() -> json([
+            'availability' => false,
         ], 200);
     }
 }

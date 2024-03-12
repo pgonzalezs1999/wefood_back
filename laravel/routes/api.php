@@ -17,7 +17,7 @@ Route::middleware('auth:sanctum') -> get('/user', function (Request $request) {
 });
 
 Route::group(['middleware' => 'api', 'prefix' => 'auth'], function($router) {
-    Route::post('/signin', [UserController::class, 'signin']); // only for customers
+    Route::post('/signIn', [UserController::class, 'signin']); // only for customers
     Route::post('/signout', [UserController::class, 'signout']);
     Route::get('/getProfile', [UserController::class, 'getProfile']);
     Route::post('/updateRealName', [UserController::class, 'updateRealName']);
@@ -27,6 +27,8 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function($router) {
     Route::post('/updatePhone', [UserController::class, 'updatePhone']);
     Route::post('/updateSex', [UserController::class, 'updateSex']);
     Route::post('/verifyEmail', [UserController::class, 'verifyEmail']);
+    Route::post('/checkUsernameAvailability', [UserController::class, 'checkUsernameAvailability']);
+    Route::post('/checkEmailAvailability', [UserController::class, 'checkEmailAvailability']);
     
     Route::post('/login', [AuthController::class, 'login']) -> name('login');
     Route::post('/refresh', [AuthController::class, 'refresh']);
@@ -53,7 +55,7 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function($router) {
     Route::post('/updateProduct', [ProductController::class, 'updateProduct']) -> middleware('business');
     Route::post('/addProductImage', [ProductController::class, 'addProductImage']) -> middleware('business');
     Route::post('/deleteProductImage', [ProductController::class, 'deleteProductImage']) -> middleware('business');
-    Route::post('/getRecommendedProducts', [ProductController::class, 'getRecommendedProducts']) -> middleware('business');
+    Route::post('/getRecommendedProducts', [ProductController::class, 'getRecommendedProducts']);
     Route::post('/searchProducts', [ProductController::class, 'searchProducts']);
 
     Route::post('/orderItem', [OrderController::class, 'orderItem']);
