@@ -56,7 +56,6 @@ class UserController extends Controller
         $user = Auth::user();
         $user -> makeHidden([
             'last_latitude', 'last_longitude', 'last_login_date',
-            'id_business',
         ]);
         return response() -> json([
             'message' => $user,
