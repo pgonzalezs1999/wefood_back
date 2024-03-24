@@ -34,7 +34,7 @@ class BusinessController extends Controller
         $validator = Validator::make($request -> all(), [
             // Create linked user
             'email' => 'required|string|email|min:6|max:255|unique:users',
-            'password' => 'required|string|min:6',
+            'password' => 'required|string|min:6|max:20',
             'phone_prefix' => 'required|integer',
             'phone' => 'required|integer|unique:users',
             // Create business
@@ -42,8 +42,8 @@ class BusinessController extends Controller
             'description' => 'required|string|min:6|max:255',
             'tax_id' => 'required|string|min:6|max:50|unique:businesses',
             'directions' => 'required|string|min:6|max:255',
-            'logo_file' => 'required|file|max:2048|image',
-            'id_country' => 'required|numeric|exists:countries,id',
+            'logo_file' => 'nullable|file|max:2048|image',
+            'id_country' => 'required|integer|exists:countries,id',
             'longitude' => 'required|numeric|min:-180|max:180',
             'latitude' => 'required|numeric|min:-90|max:90',
         ]);

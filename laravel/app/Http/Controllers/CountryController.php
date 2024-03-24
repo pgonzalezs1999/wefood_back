@@ -12,7 +12,7 @@ class CountryController extends Controller
     use SoftDeletes;
 
     public function __construct() {
-        $this -> middleware('auth:api', ['except' => []]);
+        $this -> middleware('auth:api', ['except' => ['getAllCountries']]);
     }
 
     public function getAllCountries() {

@@ -19,7 +19,12 @@ class UserController extends Controller
     use SoftDeletes;
 
     public function __construct() {
-        $this -> middleware('auth:api', ['except' => ['signin', 'checkUsernameAvailability', 'checkEmailAvailability']]);
+        $this -> middleware('auth:api', ['except' => [
+            'signin',
+            'checkUsernameAvailability',
+            'checkEmailAvailability',
+            'checkPhoneAvailability',
+        ]]);
     }
 
     public function signIn(Request $request) {
@@ -273,6 +278,27 @@ class UserController extends Controller
         }
         $email = $request -> input('email');
         $user = User::where('email', $email) -> first();
+        if($user == null) {
+            return response() -> json([
+                'availability' => true,
+            ], 200);
+        }
+        return response() -> json([
+            'availability' => false,
+        ], 200);
+    }
+
+    public function checkPhoneAvailability(Request $request) {
+        $validator = Validator::make($request -> all(), [
+            'phone' => 'required|numeric|min:10000000|max:999999999999', // 8-12 digits
+        ]);
+        if($validator -> fails()) {
+            return response() -> json([
+                'error' => $validator -> errors() -> toJson()
+            ], 400);
+        }
+        $phone = $request -> input('phone');
+        $user = User::where('phone', $phone) -> first();
         if($user == null) {
             return response() -> json([
                 'availability' => true,

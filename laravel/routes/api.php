@@ -29,6 +29,7 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function($router) {
     Route::post('/verifyEmail', [UserController::class, 'verifyEmail']);
     Route::post('/checkUsernameAvailability', [UserController::class, 'checkUsernameAvailability']);
     Route::post('/checkEmailAvailability', [UserController::class, 'checkEmailAvailability']);
+    Route::post('/checkPhoneAvailability', [UserController::class, 'checkPhoneAvailability']);
     
     Route::post('/login', [AuthController::class, 'login']) -> name('login');
     Route::post('/refresh', [AuthController::class, 'refresh']);
