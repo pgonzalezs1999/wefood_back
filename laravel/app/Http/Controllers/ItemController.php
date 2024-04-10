@@ -35,12 +35,11 @@ class ItemController extends Controller
         $item = Item::find($id);
         $product = Product::find($item -> id_product);
         $business = Utils::findBusinessFromProduct($product -> id);
-        $is_favourite = Favourite::where('id_business', $business -> id)
+        $is_favourite = false;
+        $is_favourite_ = Favourite::where('id_business', $business -> id)
             -> where('id_user', Auth::user() -> id) -> first();
-        if($is_favourite != null) {
-            $info['is_favourite'] = true;
-        } else {
-            $info['is_favourite'] = false;
+        if($is_favourite_ != null) {
+            $is_favourite = true;
         }
         $business -> rate = Utils::getBusinessRate($business -> id);
         $available = null;
@@ -76,6 +75,7 @@ class ItemController extends Controller
             'product' => $product,
             'business' => $business,
             'available' => $available,
+            'is_favourite' => $is_favourite,
         ], 200);
     }
 

@@ -8,8 +8,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Auth;
 use Validator;
 use App\Utils;
+use Carbon\Carbon;
 use App\Models\Favourite;
 use App\Models\Business;
+use App\Models\Item;
+use App\Models\Product;
 
 class FavouriteController extends Controller
 {
@@ -96,10 +99,10 @@ class FavouriteController extends Controller
         ], 201);
     }
 
-    public function getFavouriteProducts() {
+    public function getFavouriteItems() {
         $user = Auth::user();
         $favourites = Favourite::where('id_user', $user -> id) -> get();
-        $businesses = Array();
+        $businesses = new Collection();
         foreach($favourites as $favourite) {
             $newBusiness = Business::find($favourite -> id_business);
             $newBusiness -> makeHidden([
@@ -107,25 +110,40 @@ class FavouriteController extends Controller
                 'id_breakfast_product', 'id_lunch_product', 'id_dinner_product',
                 'id_currency', 'id_country', 'longitude', 'latitude',
             ]);
-            $favourite = Favourite::where('id_business', $newBusiness -> id)
-                -> where('id_user', $user -> id) -> first();
-            $is_favourite = ($favourite != null);
             $newBusiness -> rate = Utils::getBusinessRate($newBusiness -> id);
-            $businesses = array_merge($businesses, Array($newBusiness));
+            $businesses = $businesses -> push($newBusiness);
         }
         $results = new Collection();
         foreach($businesses as $business) {
-            $business_products = Utils::getProductsFromBusiness($business -> id);
-            if($business_products !== null) {
-                foreach($business_products as $product) {
+            $items = Item::where('id_product', $business -> id_breakfast_product)
+                    -> orWhere('id_product', $business -> id_lunch_product)
+                    -> orWhere('id_product', $business -> id_dinner_product)
+                    -> get();
+            foreach($items as $item) {
+                if($item -> date == Carbon::today() -> startOfDay()
+                    || $item -> date == Carbon::tomorrow() -> startOfDay()
+                ){
+                    $favourite = Favourite::where('id_business', $business -> id)
+                            -> where('id_user', $user -> id) -> first();
+                    $is_favourite = ($favourite != null);
+                    $product = Product::find($item -> id_product);
+                    $product -> amount = Utils::getAvailableAmountOfItem($item, $product);
                     $product -> makeHidden([
-                        'description', 'amount', 'ending_date',
+                        'description', 'ending_date',
                         'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
                     ]);
+                    $product -> favourite = $is_favourite;
                     $product -> type = Utils::getProductType($business -> id, $product -> id);
+                    $business -> makeHidden([
+                        'description', 'tax_id', 'is_validated',
+                        'id_country', 'longitude', 'latitude', 'directions',
+                        'id_breakfast_product', 'id_lunch_product', 'id_dinner_product', 'distance',
+                    ]);
+                    $business -> rate = Utils::getBusinessRate($business -> id);
                     $results = $results -> push([
                         'product' => $product,
                         'business' => $business,
+                        'item' => $item,
                         'is_favourite' => $is_favourite,
                     ]);
                 }
