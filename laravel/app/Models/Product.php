@@ -11,7 +11,6 @@ class Product extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'description',
         'price',
         'amount',
         'ending_date',

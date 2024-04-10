@@ -28,7 +28,6 @@ class ProductController extends Controller
 
     public function createProduct(Request $request) {
         $validator = Validator::make($request -> all(), [
-            'description' => 'required|string|min:6|max:255',
             'price' => 'required|numeric|min:0.1',
             'amount' => 'required|integer|min:1',
             'ending_date' => 'nullable|date_format:Y-m-d H:i:s',
@@ -53,7 +52,6 @@ class ProductController extends Controller
             ], 422);
         }
         $product = Product::create([
-            'description' => $request -> input('description'),
             'price' => $request -> input('price'),
             'amount' => $request -> input('amount'),
             'ending_date' => $request -> input('ending_date'),
@@ -185,10 +183,16 @@ class ProductController extends Controller
     public function updateProduct(Request $request) {
         $validator = Validator::make($request -> all(), [
             'id' => 'required|integer|exists:products,id',
-            'description' => 'required|string|min:6|max:255',
             'price' => 'required|numeric|min:0.1',
             'amount' => 'required|integer|min:1',
-            'ending_date' => 'nullable|date_format:Y-m-d H:i:s',
+            'ending_date' => [
+                'nullable',
+                function ($attribute, $value, $fail) {
+                    if ($value !== '' && !\DateTime::createFromFormat('Y-m-d H:i:s', $value)) {
+                        $fail('The ' . $attribute . ' field must be either a valid date format (Y-m-d H:i:s) or an empty string.');
+                    }
+                }
+            ],
             'starting_hour' => 'required|date_format:H:i',
             'ending_hour' => 'required|date_format:H:i',
             'vegetarian' => 'required|boolean',
@@ -217,7 +221,6 @@ class ProductController extends Controller
             ], 422);
         }
         $product = Product::find($request -> input('id'));
-        $product -> description = $request -> input('description');
         $product -> price = $request -> input('price');
         $product -> amount = $request -> input('amount');
         $product -> ending_date = $request -> input('ending_date');
@@ -366,7 +369,7 @@ class ProductController extends Controller
         foreach($businesses as $business) {
             $business -> rate = Utils::getBusinessRate($business -> id);
             $business -> makeHidden([
-                'tax_id', 'is_validated', 'description', 'directions',
+                'tax_id', 'is_validated', 'directions',
                 'id_breakfast_product', 'id_lunch_product', 'id_dinner_product',
                 'id_currency', 'id_country', 'longitude', 'latitude',
             ]);
@@ -377,9 +380,10 @@ class ProductController extends Controller
             if($business_products !== null) {
                 foreach($business_products as $product) {
                     $product -> favourite = $is_favourite;
+                    $product -> type = Utils::getProductType($business -> id, $product -> id);
                     $product -> business = $business;
                     $product -> makeHidden([
-                        'description', 'ending_date',
+                        'ending_date',
                         'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
                     ]);
                     $products = $products -> push([
@@ -390,7 +394,10 @@ class ProductController extends Controller
                 }
             }
         }
-        $random_products = $products -> random(3);
+
+        $random_products = $products -> count() >= 3
+            ? $products -> random(3)
+            : $products;
         return response() -> json([
             'products' => $random_products,
         ], 200);
@@ -474,11 +481,11 @@ class ProductController extends Controller
                 'id_product',
             ]);
             $product -> makeHidden([
-                'description', 'ending_date',
+                'ending_date',
                 'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
             ]);
             $business -> makeHidden([
-                'description', 'tax_id', 'id_country', 'is_validated',
+                'tax_id', 'id_country', 'is_validated',
                 'id_breakfast_product', 'id_lunch_product', 'id_dinner_product',
                 'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
                 'directions', 'longitude', 'latitude',

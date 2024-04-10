@@ -18,18 +18,16 @@ class addItemsToUnlimitedProducts extends Command
 
     public function handle()
     {
-        $threeDaysFromNow = Carbon::now() -> addDays(3);
+        $twoDaysFromNow = Carbon::now() -> addDays(2);
         $products = Product::where('ending_date', null)
-                -> orWhere('ending_date', '>', $threeDaysFromNow)
+                -> orWhere('ending_date', '>', $twoDaysFromNow)
                 -> get();
         $todayField = 'working_on_' . strtolower(Carbon::now() -> englishDayOfWeek);
         $tomorrowField = 'working_on_' . strtolower(Carbon::tomorrow() -> englishDayOfWeek);
-        $afterTomorrowField = 'working_on_' . strtolower(Carbon::tomorrow() -> addDay() -> englishDayOfWeek);
-        $weekDays = [ $todayField, $tomorrowField, $afterTomorrowField ];
+    $weekDays = [ $todayField, $tomorrowField ];
         $dates = [
             Carbon::now() -> startOfDay(),
-            Carbon::tomorrow() -> startOfDay(),
-            Carbon::tomorrow() -> addDay() -> startOfDay(),
+            Carbon::tomorrow() -> startOfDay()
         ];
         foreach($products as $product) {
             $business = Business::where('id_breakfast_product', $product -> id)
@@ -43,7 +41,7 @@ class addItemsToUnlimitedProducts extends Command
                     $item -> delete();
                 }
             } else {
-                for($i = 0; $i < 3; $i++) {
+                for($i = 0; $i < 2; $i++) {
                     if($product -> {$weekDays[$i]} == 1) {
                         $todayItem = Item::where('id_product', $product -> id)
                         -> where('date', $dates[$i])

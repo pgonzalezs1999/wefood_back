@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 use App\Utils;
+use Illuminate\Support\Collection;
 use Auth;
 use Validator;
 use App\Models\User;
@@ -16,6 +17,7 @@ use App\Models\Business;
 use App\Models\Favourite;
 use App\Models\Comment;
 use App\Models\Currency;
+use App\Models\Country;
 use App\Models\LegalCurrency;
 use App\Models\AcceptedCurrency;
 use App\Models\Order;
@@ -27,7 +29,12 @@ class BusinessController extends Controller
     use SoftDeletes;
     
     public function __construct() {
-        $this -> middleware('auth:api', ['except' => ['createBusiness']]);
+        $this -> middleware('auth:api', ['except' => [
+            'createBusiness',
+            'checkTaxIdAvailability',
+            'checkValidity',
+            'cancelValidation',
+        ]]);
     }
 
     public function createBusiness(Request $request) {
@@ -42,8 +49,7 @@ class BusinessController extends Controller
             'description' => 'required|string|min:6|max:255',
             'tax_id' => 'required|string|min:6|max:50|unique:businesses',
             'directions' => 'required|string|min:6|max:255',
-            'logo_file' => 'nullable|file|max:2048|image',
-            'id_country' => 'required|integer|exists:countries,id',
+            'country' => 'required',
             'longitude' => 'required|numeric|min:-180|max:180',
             'latitude' => 'required|numeric|min:-90|max:90',
         ]);
@@ -52,11 +58,21 @@ class BusinessController extends Controller
                 'error' => $validator -> errors() -> toJson()
             ], 422);
         }
+        $country = Country::where('google_maps_name', $request -> input('country')) -> first();
+        if($country == null) {
+            return [
+                'error' => 'Country not found.',
+                'code' => '404',
+            ];
+        }
         $business = Business::create([
             'name' => $request -> input('name'),
             'description' => $request -> input('description'),
             'tax_id' => $request -> input('tax_id'),
             'directions' => $request -> input('directions'),
+            'country' => $country -> id,
+            'longitude' => $request -> input('longitude'),
+            'latitude' => $request -> input('latitude'),
         ]);
         $user = User::create([
             'username' => $request -> input('email'),
@@ -66,7 +82,7 @@ class BusinessController extends Controller
             'phone' => $request -> input('phone'),
             'id_business' => $business -> id,
         ]);
-        try {
+        /*try {
             $user_id = $user -> id;
             $image_path = "storage/images/{$user_id}";
             $image_name = 'profile.' . $request -> file('logo_file') -> getClientOriginalExtension();
@@ -82,7 +98,7 @@ class BusinessController extends Controller
             return response() -> json([
                 'error' => 'Could not upload the image'
             ], 500);
-        }
+        }*/
         return response()->json([
             'message' => 'Business created successfully. Waiting to be validated by an admin.',
             'business' => $business,
@@ -103,7 +119,7 @@ class BusinessController extends Controller
             'id_business', 'is_admin', 'sex',
         ]);
         $request -> input('mw_business') -> makeHidden([
-            'longitude', 'latitude', 'is_validated',
+            'is_validated',
         ]);
         $favourites = Favourite::where('id_business', $request -> input('mw_business') -> id) -> count();
         $comments = Comment::where('id_business', $request -> input('mw_business') -> id) -> get();
@@ -191,10 +207,33 @@ class BusinessController extends Controller
                 'error' => 'Business is already validated.'
             ], 422);
         }
-        $business -> is_validated = true;
+        $business -> is_validated = 1;
         $business -> save();
         return response() -> json([
             'message' => 'Business successfully validated.'
+        ], 200);
+    }
+
+    public function refuseBusiness(Request $request) {
+        $validator = Validator::make($request -> all(), [
+            'id' => 'required|numeric|exists:businesses,id',
+        ]);
+        if($validator -> fails()) {
+            return response() -> json([
+                'error' => $validator -> errors() -> toJson()
+            ], 422);
+        }
+        $business = Business::find($request -> id);
+        if($business -> is_validated) {
+            return response()->json([
+                'error' => 'Business is already validated.'
+            ], 422);
+        }
+        $business -> is_validated = 2;
+        $business -> save();
+        $business -> delete();
+        return response() -> json([
+            'message' => 'Business refused validated.'
         ], 200);
     }
 
@@ -235,14 +274,26 @@ class BusinessController extends Controller
     public function updateBusinessDirections(Request $request) {
         $validator = Validator::make($request -> all(), [
             'directions' => 'required|string|min:6|max:255',
+            'country' => 'required',
+            'longitude' => 'required|numeric|min:-180|max:180',
+            'latitude' => 'required|numeric|min:-90|max:90',
         ]);
         if($validator -> fails()) {
             return response() -> json([
                 'error' => $validator -> errors() -> toJson()
             ], 422);
         }
-        
+        $country = Country::where('google_maps_name', $request -> input('country')) -> first();
+        if($country == null) {
+            return [
+                'error' => 'Country not found.',
+                'code' => '404',
+            ];
+        }
         $request -> input('mw_business') -> directions = $request -> input('directions');
+        $request -> input('mw_business') -> id_country = $country -> id;
+        $request -> input('mw_business') -> longitude = $request -> input('longitude');
+        $request -> input('mw_business') -> latitude = $request -> input('latitude');
         $request -> input('mw_business') -> save();
         return response() -> json([
             'message' => 'Business directions updated successfully.',
@@ -328,7 +379,7 @@ class BusinessController extends Controller
         $businesses = Utils::getBusinessesFromDistance(
             $request -> latitude, $request -> longitude, 0.5
         );
-        foreach ($businesses as $business) {
+        foreach($businesses as $business) {
             $distance = Utils::get2dDistance($request -> longitude, $request -> latitude, $business -> longitude, $business -> latitude);
             $business -> distance = $distance;
         }
@@ -353,6 +404,7 @@ class BusinessController extends Controller
                         'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
                     ]);
                     $product -> favourite = $is_favourite;
+                    $product -> type = Utils::getProductType($business -> id, $product -> id);
                     $business -> makeHidden([
                         'description', 'tax_id', 'is_validated',
                         'id_country', 'longitude', 'latitude', 'directions',
@@ -371,6 +423,126 @@ class BusinessController extends Controller
         $sortedResults = collect($results) -> sortBy('item.date') -> values() -> all();
         return response() -> json([
             'products' => $results,
+        ], 200);
+    }
+
+    public function checkTaxIdAvailability(Request $request) {
+        $validator = Validator::make($request -> all(), [
+            'tax_id' => 'required',
+        ]);
+        if($validator -> fails()) {
+            return response() -> json([
+                'error' => $validator -> errors() -> toJson()
+            ], 400);
+        }
+        $tax_id = $request -> input('tax_id');
+        $business = Business::where('tax_id', $tax_id) -> first();
+        if($business == null) {
+            return response() -> json([
+                'availability' => true,
+            ], 200);
+        }
+        return response() -> json([
+            'availability' => false,
+        ], 200);
+    }
+
+    public function checkValidity(Request $request) {
+        $validator = Validator::make($request -> all(), [
+            'username' => 'required',
+        ]);
+        if($validator -> fails()) {
+            return response() -> json([
+                'error' => $validator -> errors() -> toJson()
+            ], 400);
+        }
+        $user = User::where('username', $request -> input('username')) -> first();
+        if($user == null) {
+            return response() -> json([
+                'error' => 'User not found',
+            ], 404);
+        }
+        $business = Business::find($user -> id_business);
+        if($business == null) {
+            return response() -> json([
+                'error' => 'Business not found',
+            ], 404);
+        }
+        $validity = $business -> is_validated;
+        if($validity == 1 || $validity == '1' || $validity == true) {
+            return response() -> json([
+                'validity' => true,
+            ], 200);
+        } else {
+            return response() -> json([
+                'validity' => false,
+            ], 200);
+        }
+    }
+
+    public function cancelValidation(Request $request) {
+        $validator = Validator::make($request -> all(), [
+            'name' => 'required',
+        ]);
+        if($validator -> fails()) {
+            return response() -> json([
+                'error' => $validator -> errors() -> toJson()
+            ], 400);
+        }
+        $user = User::where('username', $request -> input('username')) -> first();
+        if($user == null) {
+            return response() -> json([
+                'error' => 'User not found',
+            ], 404);
+        }
+        $business = Business::find($user -> id_business);
+        if($business == null) {
+            return response() -> json([
+                'error' => 'Business not found',
+            ], 404);
+        }
+        $validity = $business -> is_validated;
+        if($validity == 0 && $validity != '0' && $validity != false) {
+            return response() -> json([
+                'error' => 'Business not unsubmitable',
+            ], 404);
+        }
+        $business -> is_validated = 2; // 0 = not validated; 1 = validated; 2 = cancelled while waiting for validation
+        $business -> save();
+        return response() -> json([
+            'message' => 'Business unsubmited successfully',
+        ], 200);
+    }
+
+    public function businessProductsResume(Request $request) {
+        $request -> input('mw_user') -> makeHidden([
+            'last_login_date', 'last_latitude', 'last_longitude',
+            'id_business', 'is_admin', 'sex',
+        ]);
+        $request -> input('mw_business') -> makeHidden([
+            'is_validated',
+        ]);
+        $breakfast = Product::where('id', $request -> input('mw_business') -> id_breakfast_product) -> first();
+        $lunch = Product::where('id', $request -> input('mw_business') -> id_lunch_product) -> first();
+        $dinner = Product::where('id', $request -> input('mw_business') -> id_dinner_product) -> first();
+        return response() -> json([
+            'breakfast' => $breakfast,
+            'lunch' => $lunch,
+            'dinner' => $dinner,
+        ], 200);
+    }
+
+    public function getValidatableBusinesses() {
+        $businesses = Business::where('is_validated', 0) -> get();
+        $result = new Collection();
+        foreach($businesses as $business) {
+            $result = $result -> push([
+                'business' => $business,
+                'user' => User::where('id_business') -> first(),
+            ]);
+        }
+        return response() -> json([
+            'results' => $result,
         ], 200);
     }
 }

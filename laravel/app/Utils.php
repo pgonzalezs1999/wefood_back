@@ -75,7 +75,6 @@ class Utils {
         ]);
         $product -> makeHidden([
             'ending_date',
-            'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
         ]);
         $item = Item::where('id_product', $product -> id)
                 -> orderByDesc('date') -> first();

@@ -12,6 +12,8 @@ class Country extends Model
 
     protected $fillable = [
         'name',
+        'prefix',
+        'google_maps_name',
     ];
 
     protected $hidden = [

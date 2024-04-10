@@ -122,6 +122,7 @@ class FavouriteController extends Controller
                         'description', 'amount', 'ending_date',
                         'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
                     ]);
+                    $product -> type = Utils::getProductType($business -> id, $product -> id);
                     $results = $results -> push([
                         'product' => $product,
                         'business' => $business,

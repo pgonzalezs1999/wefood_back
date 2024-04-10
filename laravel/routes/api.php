@@ -43,12 +43,17 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function($router) {
     Route::get('/getAllBusinesses', [BusinessController::class, 'getAllBusinesses']);
     Route::post('/deleteBusiness', [BusinessController::class, 'deleteBusiness']) -> middleware('business');
     Route::post('/validateBusiness', [BusinessController::class, 'validateBusiness']) -> middleware('admin');
+    Route::post('/refuseBusiness', [BusinessController::class, 'refuseBusiness']) -> middleware('admin');
     Route::post('/updateBusinessName', [BusinessController::class, 'updateBusinessName']) -> middleware('business');
     Route::post('/updateBusinessDescription', [BusinessController::class, 'updateBusinessDescription']) -> middleware('business');
     Route::post('/updateBusinessDirections', [BusinessController::class, 'updateBusinessDirections']) -> middleware('business');
     Route::post('/addBusinessCurrency', [BusinessController::class, 'addBusinessCurrency']) -> middleware('business');
     Route::post('/removeBusinessCurrency', [BusinessController::class, 'removeBusinessCurrency']) -> middleware('business');
-    Route::post('/getNearbyBusinesses', [BusinessController::class, 'getNearbyBusinesses']);
+    Route::post('/checkTaxIdAvailability', [BusinessController::class, 'checkTaxIdAvailability']);
+    Route::post('/checkValidity', [BusinessController::class, 'checkValidity']);
+    Route::post('/cancelValidation', [BusinessController::class, 'cancelValidation']);
+    Route::get('/businessProductsResume', [BusinessController::class, 'businessProductsResume']) -> middleware('business');
+    Route::get('/getValidatableBusinesses', [BusinessController::class, 'getValidatableBusinesses']) -> middleware('admin');
     
     Route::get('/getProduct/{id}', [ProductController::class, 'getProduct']);
     Route::post('/createProduct', [ProductController::class, 'createProduct']) -> middleware('business');
@@ -56,9 +61,12 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function($router) {
     Route::post('/updateProduct', [ProductController::class, 'updateProduct']) -> middleware('business');
     Route::post('/addProductImage', [ProductController::class, 'addProductImage']) -> middleware('business');
     Route::post('/deleteProductImage', [ProductController::class, 'deleteProductImage']) -> middleware('business');
-    Route::post('/getRecommendedProducts', [ProductController::class, 'getRecommendedProducts']);
     Route::post('/searchProducts', [ProductController::class, 'searchProducts']);
-
+    
+    Route::post('/getRecommendedItems', [ItemController::class, 'getRecommendedItems']);
+    Route::post('/getNearbyItems', [ItemController::class, 'getNearbyItems']);
+    Route::get('/getItem/{id}', [ItemController::class, 'getItem']);
+    
     Route::post('/orderItem', [OrderController::class, 'orderItem']);
     Route::get('/getPendingOrdersCustomer', [OrderController::class, 'getPendingOrdersCustomer']);
     Route::get('/getPendingOrdersBusiness', [OrderController::class, 'getPendingOrdersBusiness']) -> middleware('business');

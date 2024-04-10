@@ -62,6 +62,10 @@ class UserController extends Controller
         $user -> makeHidden([
             'last_latitude', 'last_longitude', 'last_login_date',
         ]);
+        if($user -> id_business != null) {
+            $business = Business::find($user -> id_business);
+            $user -> business_verified = $business -> is_validated;
+        }
         return response() -> json([
             'message' => $user,
         ], 200);
