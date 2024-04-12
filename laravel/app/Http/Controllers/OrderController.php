@@ -257,7 +257,7 @@ class OrderController extends Controller
             ], 422);
         }
         $order -> reception_date = Carbon::now();
-        $order -> reception_method = 'PM'; // pickup manually
+        $order -> reception_method = 'PM'; // picked up manually
         $order -> save();
         return response() -> json([
             'message' => 'Order completed successfully.',
