@@ -151,7 +151,7 @@ class OrderController extends Controller
         $orders = Order::whereIn('id_item', $items) -> get();
         foreach ($orders as $order) {
             $order->makeHidden([
-                'id_user', 'id_payment', 'reception_date', 'reception_method', 'order_date',
+                'id_user', 'id_payment', 'reception_date', 'order_date',
             ]);
         }
         return response() -> json([
@@ -243,6 +243,41 @@ class OrderController extends Controller
         if($order -> id_user != Auth::user() -> id) {
             return response() -> json([
                 'error' => 'You are not allowed to complete this order.'
+            ], 403);
+        }
+        if($order -> reception_date != null) {
+            return response() -> json([
+                'error' => 'Order already completed.'
+            ], 422);
+        }
+        $item = Item::find($order -> id_item);
+        if($item -> date < Carbon::today() -> startOfDay()) {
+            return response() -> json([
+                'error' => 'Order not available anymore.'
+            ], 422);
+        }
+        $order -> reception_date = Carbon::now();
+        $order -> reception_method = 'PM'; // picked up manually
+        $order -> save();
+        return response() -> json([
+            'message' => 'Order completed successfully.',
+            'order' => $order,
+        ], 200);
+    }
+
+    public function completeOrderBusiness(Request $request) {
+        $validator = Validator::make($request -> all(), [
+            'id_order' => 'required|integer|exists:orders,id',
+        ]);
+        if($validator -> fails()) {
+            return response() -> json([
+                'error' => $validator -> errors() -> toJson()
+            ], 422);
+        }
+        $order = Order::find($request -> input('id_order'));
+        if($order -> id_business != $request -> input('mw_business') -> id) {
+            return response() -> json([
+                'error' => 'Order not belonging to this business.'
             ], 403);
         }
         if($order -> reception_date != null) {
