@@ -71,6 +71,7 @@ class ProductController extends Controller
         ]);
         try {
             if($request -> input('type') == 'B') {
+                $type = 'B';
                 if($request -> input('mw_business') -> id_breakfast_product != null) {
                     return response() -> json([
                         'error' => 'Breakfast already exists.'
@@ -78,6 +79,7 @@ class ProductController extends Controller
                 }
                 $request -> input('mw_business') -> id_breakfast_product = $product -> id;
             } else if($request -> input('type') == 'L') {
+                $type = 'L';
                 if($request -> input('mw_business') -> id_lunch_product != null) {
                     return response() -> json([
                         'error' => 'Lunch already exists.'
@@ -85,6 +87,7 @@ class ProductController extends Controller
                 }
                 $request -> input('mw_business') -> id_lunch_product = $product -> id;
             } else if($request -> input('type') == 'D') {
+                $type = 'D';
                 if($request -> input('mw_business') -> id_dinner_product != null) {
                     return response() -> json([
                         'error' => 'Dinner already exists.'
@@ -104,6 +107,7 @@ class ProductController extends Controller
                 'error' => 'Could not create the product.'
             ], 500);
         }
+        $product -> type = $type;
         $todayField = 'working_on_' . strtolower(Carbon::now() -> englishDayOfWeek);
         $tomorrowField = 'working_on_' . strtolower(Carbon::tomorrow() -> englishDayOfWeek);
         $afterTomorrowField = 'working_on_' . strtolower(Carbon::tomorrow() -> addDay() -> englishDayOfWeek);
