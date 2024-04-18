@@ -11,6 +11,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\FavouriteController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\ImageController;
 
 Route::middleware('auth:sanctum') -> get('/user', function (Request $request) {
     return $request->user();
@@ -84,4 +85,7 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function($router) {
     Route::post('/deleteComment', [CommentController::class, 'deleteComment']);
     
     Route::get('/getAllCountries', [CountryController::class, 'getAllCountries']);
+
+    Route::post('/create', [ImageController::class, 'create']);
+    Route::post('/getImage', [ImageController::class, 'getImage']);
 });

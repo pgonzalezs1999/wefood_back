@@ -108,8 +108,7 @@ class ItemController extends Controller
                 if($item -> date == Carbon::today() -> startOfDay()
                     || $item -> date == Carbon::tomorrow() -> startOfDay()
                 ){
-                    $favourite = Favourite::where('id_business', $business -> id)
-                            -> where('id_user', $user -> id) -> first();
+                    $favourite = Favourite::where('id_business', $business -> id) -> where('id_user', $user -> id) -> first();
                     $is_favourite = ($favourite != null);
                     $product = Product::find($item -> id_product);
                     $product -> amount = Utils::getAvailableAmountOfItem($item, $product);
@@ -125,9 +124,15 @@ class ItemController extends Controller
                         'id_breakfast_product', 'id_lunch_product', 'id_dinner_product', 'distance',
                     ]);
                     $business -> rate = Utils::getBusinessRate($business -> id);
+                    $owner = User::where('id_business', $business -> id) -> first();
+                    $owner -> makeHidden([
+                        'real_name', 'real_surname', 'username', 'email', 'phone', 'phone_prefix', 'sex',
+                        'last_latitude', 'last_longitude', 'last_login_date', 'email_verified', 'is_admin',
+                    ]);
                     $results = $results -> push([
                         'product' => $product,
                         'business' => $business,
+                        'user' => $owner,
                         'item' => $item,
                         'is_favourite' => $is_favourite,
                     ]);
@@ -188,9 +193,15 @@ class ItemController extends Controller
                         'id_breakfast_product', 'id_lunch_product', 'id_dinner_product', 'distance',
                     ]);
                     $business -> rate = Utils::getBusinessRate($business -> id);
+                    $owner = User::where('id_business', $business -> id) -> first();
+                    $owner -> makeHidden([
+                        'real_name', 'real_surname', 'username', 'email', 'phone', 'phone_prefix', 'sex',
+                        'last_latitude', 'last_longitude', 'last_login_date', 'email_verified', 'is_admin',
+                    ]);
                     $results = array_merge($results, [[
                         'product' => $product,
                         'business' => $business,
+                        'user' => $owner,
                         'item' => $item,
                         'is_favourite' => $is_favourite,
                     ]]);

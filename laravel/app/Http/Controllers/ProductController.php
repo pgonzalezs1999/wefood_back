@@ -355,58 +355,6 @@ class ProductController extends Controller
         );
     }
 
-    public function getRecommendedProducts(Request $request) {
-        $validator = Validator::make($request -> all(), [
-            'longitude' => 'required|numeric|min:-180|max:180',
-            'latitude' => 'required|numeric|min:-90|max:90',
-        ]);
-        if($validator -> fails()) {
-            return response() -> json([
-                'error' => $validator -> errors() -> toJson()
-            ], 422);
-        }
-        $user = Auth::user();
-        $businesses = Utils::getBusinessesFromDistance(
-            $request -> latitude, $request -> longitude, 0.5
-        );
-        $products = new Collection();
-        foreach($businesses as $business) {
-            $business -> rate = Utils::getBusinessRate($business -> id);
-            $business -> makeHidden([
-                'tax_id', 'is_validated', 'directions',
-                'id_breakfast_product', 'id_lunch_product', 'id_dinner_product',
-                'id_currency', 'id_country', 'longitude', 'latitude',
-            ]);
-            $favourite = Favourite::where('id_business', $business -> id)
-                -> where('id_user', $user -> id) -> first();
-            $is_favourite = ($favourite != null);
-            $business_products = Utils::getProductsFromBusiness($business -> id);
-            if($business_products !== null) {
-                foreach($business_products as $product) {
-                    $product -> favourite = $is_favourite;
-                    $product -> type = Utils::getProductType($business -> id, $product -> id);
-                    $product -> business = $business;
-                    $product -> makeHidden([
-                        'ending_date',
-                        'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
-                    ]);
-                    $products = $products -> push([
-                        'product' => $product,
-                        'business' => $business,
-                        'is_favourite' => $is_favourite,
-                    ]);
-                }
-            }
-        }
-
-        $random_products = $products -> count() >= 3
-            ? $products -> random(3)
-            : $products;
-        return response() -> json([
-            'products' => $random_products,
-        ], 200);
-    }
-
     public function searchProducts(Request $request) {
         $validator = Validator::make($request -> all(), [
             'longitude' => 'required|numeric|min:-180|max:180',

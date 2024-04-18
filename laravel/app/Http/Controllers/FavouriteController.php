@@ -13,6 +13,7 @@ use App\Models\Favourite;
 use App\Models\Business;
 use App\Models\Item;
 use App\Models\Product;
+use App\Models\User;
 
 class FavouriteController extends Controller
 {
@@ -140,9 +141,15 @@ class FavouriteController extends Controller
                         'id_breakfast_product', 'id_lunch_product', 'id_dinner_product', 'distance',
                     ]);
                     $business -> rate = Utils::getBusinessRate($business -> id);
+                    $owner = User::where('id_business', $business -> id) -> first();
+                    $owner -> makeHidden([
+                        'real_name', 'real_surname', 'username', 'email', 'phone', 'phone_prefix', 'sex',
+                        'last_latitude', 'last_longitude', 'last_login_date', 'email_verified', 'is_admin',
+                    ]);
                     $results = $results -> push([
                         'product' => $product,
                         'business' => $business,
+                        'user' => $owner,
                         'item' => $item,
                         'is_favourite' => $is_favourite,
                     ]);
