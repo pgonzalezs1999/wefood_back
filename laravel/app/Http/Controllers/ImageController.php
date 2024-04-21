@@ -9,14 +9,19 @@ use Validator;
 
 class ImageController extends Controller
 {
-    public function create(Request $request)
-    {
-        $images = new Image();
+    public function uploadImage(Request $request) {
         $request -> validate([
             'id_user' => 'required',
             'meaning' => 'required',
-            'image' => 'required|max:1024'
+            'image' => 'required'
         ]);
+        $image_find = Image::where('id_user', $request -> input('id_user')) -> where('id_user', $request -> input('id_user')) -> first();
+        $image = null;
+        if($image_find != null) {
+            $image = $image_find;
+        } else {
+            $image = new Image();
+        }
         
         $filename = '';
         if($request -> hasFile('image')) {
@@ -25,19 +30,22 @@ class ImageController extends Controller
             $filename = null;
         }
 
-        $images -> id_user = $request -> input('id_user');
-        $images -> meaning = $request -> input('meaning');
-        $images -> image = $filename;
-        $result = $images -> save();
+        $image -> id_user = $request -> input('id_user');
+        $image -> meaning = $request -> input('meaning');
+        $image -> image = $filename;
+        $result = $image -> save();
         if($result) {
-            return response() -> json(['succes' => true]);
+            return response() -> json([
+                'image' => $image
+            ], 200);
         } else {
-            return response() -> json(['succes' => false]);
+            return response() -> json([
+                'error' => 'Internal server error',
+            ], 500);
         }
     }
 
-    public function getImage(Request $request)
-    {
+    public function getImage(Request $request) {
         $validator = Validator::make($request -> all(), [
             'id_user' => 'required',
             'meaning' => 'required',

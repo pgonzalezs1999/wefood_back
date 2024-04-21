@@ -86,6 +86,6 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function($router) {
     
     Route::get('/getAllCountries', [CountryController::class, 'getAllCountries']);
 
-    Route::post('/create', [ImageController::class, 'create']);
+    Route::post('/uploadImage', [ImageController::class, 'uploadImage']);
     Route::post('/getImage', [ImageController::class, 'getImage']);
 });
