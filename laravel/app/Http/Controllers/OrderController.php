@@ -15,6 +15,7 @@ use App\Models\Order;
 use App\Models\Item;
 use App\Models\Product;
 use App\Models\Business;
+use App\Models\User;
 
 class OrderController extends Controller
 {
@@ -109,6 +110,11 @@ class OrderController extends Controller
                                 'directions', 'longitude', 'latitude',
                                 'created_at',
                             ]);
+                            $owner = User::where('id_business', $business -> id) -> first();
+                            $owner -> makeHidden([
+                                'real_name', 'real_surname', 'username', 'email', 'phone', 'phone_prefix', 'sex',
+                                'last_latitude', 'last_longitude', 'last_login_date', 'id_business', 'is_admin', 'email_verified',
+                            ]);
                             $product -> makeHidden([
                                 'description', 'ending_date',
                                 'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
@@ -125,6 +131,7 @@ class OrderController extends Controller
                             ]);
                             $result = [
                                 'business' => $business,
+                                'user' => $owner,
                                 'product' => $product,
                                 'item' => $item,
                                 'order' => $order,
