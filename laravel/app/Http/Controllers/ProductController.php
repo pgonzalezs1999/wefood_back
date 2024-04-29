@@ -35,8 +35,8 @@ class ProductController extends Controller
             'ending_hour' => 'required|date_format:H:i',
             'vegetarian' => 'required|boolean',
             'vegan' => 'required|boolean',
-            'bakery' => 'required|boolean',
-            'fresh' => 'required|boolean',
+            'dessert' => 'required|boolean',
+            'junk' => 'required|boolean',
             'working_on_monday' => 'required|boolean',
             'working_on_tuesday' => 'required|boolean',
             'working_on_wednesday' => 'required|boolean',
@@ -59,8 +59,8 @@ class ProductController extends Controller
             'ending_hour' => $request -> input('ending_hour'),
             'vegetarian' => $request -> input('vegetarian'),
             'vegan' => $request -> input('vegan'),
-            'bakery' => $request -> input('bakery'),
-            'fresh' => $request -> input('fresh'),
+            'dessert' => $request -> input('dessert'),
+            'junk' => $request -> input('junk'),
             'working_on_monday' => $request -> input('working_on_monday'),
             'working_on_tuesday' => $request -> input('working_on_tuesday'),
             'working_on_wednesday' => $request -> input('working_on_wednesday'),
@@ -201,8 +201,8 @@ class ProductController extends Controller
             'ending_hour' => 'required|date_format:H:i',
             'vegetarian' => 'required|boolean',
             'vegan' => 'required|boolean',
-            'bakery' => 'required|boolean',
-            'fresh' => 'required|boolean',
+            'dessert' => 'required|boolean',
+            'junk' => 'required|boolean',
             'working_on_monday' => 'required|boolean',
             'working_on_tuesday' => 'required|boolean',
             'working_on_wednesday' => 'required|boolean',
@@ -232,8 +232,8 @@ class ProductController extends Controller
         $product -> ending_hour = $request -> input('ending_hour');
         $product -> vegetarian = $request -> input('vegetarian');
         $product -> vegan = $request -> input('vegan');
-        $product -> bakery = $request -> input('bakery');
-        $product -> fresh = $request -> input('fresh');
+        $product -> dessert = $request -> input('junk');
+        $product -> dessert = $request -> input('junk');
         $product -> working_on_monday = $request -> input('working_on_monday');
         $product -> working_on_tuesday = $request -> input('working_on_tuesday');
         $product -> working_on_wednesday = $request -> input('working_on_wednesday');
@@ -362,8 +362,8 @@ class ProductController extends Controller
             'distance' => 'required|numeric|min:0.01',
             'vegetarian' => 'required|boolean',
             'vegan' => 'required|boolean',
-            'bakery' => 'required|boolean',
-            'fresh' => 'required|boolean',
+            'dessert' => 'required|boolean',
+            'junk' => 'required|boolean',
             'price' => 'required|numeric|min:0.1',
             'starting_hour' => 'required|date_format:H:i',
             'ending_hour' => 'required|date_format:H:i',
@@ -393,11 +393,11 @@ class ProductController extends Controller
         if($request -> input('vegan') == true) {
             $products = $products -> where('vegan', true);
         }
-        if($request -> input('bakery') == true) {
-            $products = $products -> where('bakery', true);
+        if($request -> input('dessert') == true) {
+            $products = $products -> where('dessert', true);
         }
-        if($request -> input('fresh') == true) {
-            $products = $products -> where('fresh', true);
+        if($request -> input('junk') == true) {
+            $products = $products -> where('junk', true);
         }
         if($request -> input('price') != null) {
             $products = $products -> where('price', '<=', $request -> input('price'));

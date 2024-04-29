@@ -16,8 +16,8 @@ return new class extends Migration
             $table->dateTime('ending_date')->nullable();
             $table->boolean('vegetarian')->nullable();
             $table->boolean('vegan')->nullable();
-            $table->boolean('bakery')->nullable();
-            $table->boolean('fresh')->nullable();
+            $table->boolean('dessert')->nullable();
+            $table->boolean('junk')->nullable();
             $table->boolean('workingOnMonday')->nullable();
             $table->boolean('workingOnTuesday')->nullable();
             $table->boolean('workingOnWednesday')->nullable();

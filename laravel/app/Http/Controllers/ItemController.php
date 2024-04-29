@@ -108,15 +108,12 @@ class ItemController extends Controller
                 if($item -> date == Carbon::today() -> startOfDay()
                     || $item -> date == Carbon::tomorrow() -> startOfDay()
                 ){
-                    $favourite = Favourite::where('id_business', $business -> id) -> where('id_user', $user -> id) -> first();
-                    $is_favourite = ($favourite != null);
                     $product = Product::find($item -> id_product);
                     $product -> amount = Utils::getAvailableAmountOfItem($item, $product);
                     $product -> makeHidden([
                         'description', 'ending_date',
                         'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
                     ]);
-                    $product -> favourite = $is_favourite;
                     $product -> type = Utils::getProductType($business -> id, $product -> id);
                     $business -> makeHidden([
                         'description', 'tax_id', 'is_validated',
@@ -134,7 +131,6 @@ class ItemController extends Controller
                         'business' => $business,
                         'user' => $owner,
                         'item' => $item,
-                        'is_favourite' => $is_favourite,
                     ]);
                 }
             }
@@ -176,16 +172,12 @@ class ItemController extends Controller
                 if($item -> date == Carbon::today() -> startOfDay()
                     || $item -> date == Carbon::tomorrow() -> startOfDay()
                 ){
-                    $favourite = Favourite::where('id_business', $business -> id)
-                            -> where('id_user', $user -> id) -> first();
-                    $is_favourite = ($favourite != null);
                     $product = Product::find($item -> id_product);
                     $product -> amount = Utils::getAvailableAmountOfItem($item, $product);
                     $product -> makeHidden([
                         'description', 'ending_date',
                         'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
                     ]);
-                    $product -> favourite = $is_favourite;
                     $product -> type = Utils::getProductType($business -> id, $product -> id);
                     $business -> makeHidden([
                         'description', 'tax_id', 'is_validated',
@@ -203,7 +195,6 @@ class ItemController extends Controller
                         'business' => $business,
                         'user' => $owner,
                         'item' => $item,
-                        'is_favourite' => $is_favourite,
                     ]]);
                 }
             }

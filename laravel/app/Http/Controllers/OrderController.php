@@ -118,7 +118,7 @@ class OrderController extends Controller
                             $product -> makeHidden([
                                 'description', 'ending_date',
                                 'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
-                                'vegetarian', 'vegan', 'fresh', 'bakery', 'amount',
+                                'vegetarian', 'vegan', 'dessert', 'junk', 'amount',
                             ]);
                             $product -> type = $order -> meal_type;
                             $item -> makeHidden([
@@ -188,7 +188,7 @@ class OrderController extends Controller
                         $product -> makeHidden([
                             'description', 'ending_date',
                             'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
-                            'vegetarian', 'vegan', 'fresh', 'bakery',
+                            'vegetarian', 'vegan', 'dessert', 'junk',
                             'starting_hour', 'ending_hour', 'amount',
                         ]);
                         $order -> makeHidden([
