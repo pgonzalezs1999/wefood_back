@@ -62,7 +62,8 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function($router) {
     Route::post('/updateProduct', [ProductController::class, 'updateProduct']) -> middleware('business');
     Route::post('/addProductImage', [ProductController::class, 'addProductImage']) -> middleware('business');
     Route::post('/deleteProductImage', [ProductController::class, 'deleteProductImage']) -> middleware('business');
-    Route::post('/searchProducts', [ProductController::class, 'searchProducts']);
+    Route::post('/searchItemsByFilters', [ProductController::class, 'searchItemsByFilters']);
+    Route::post('/searchItemsByText', [ProductController::class, 'searchItemsByText']);
     
     Route::post('/getRecommendedItems', [ItemController::class, 'getRecommendedItems']);
     Route::post('/getNearbyItems', [ItemController::class, 'getNearbyItems']);

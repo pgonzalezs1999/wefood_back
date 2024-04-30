@@ -355,7 +355,7 @@ class ProductController extends Controller
         );
     }
 
-    public function searchProducts(Request $request) {
+    public function searchItemsByFilters(Request $request) {
         $validator = Validator::make($request -> all(), [
             'longitude' => 'required|numeric|min:-180|max:180',
             'latitude' => 'required|numeric|min:-90|max:90',
@@ -429,6 +429,7 @@ class ProductController extends Controller
             $product = Product::find($item -> id_product);
             $product -> amount = Utils::getAvailableAmountOfItem($item, $product);
             $business = Utils::findBusinessFromProduct($product -> id);
+            $user = User::where('id_business', $business -> id) -> first();
             $item -> makeHidden([
                 'id_product',
             ]);
@@ -436,16 +437,105 @@ class ProductController extends Controller
                 'ending_date',
                 'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
             ]);
+            $product -> type = Utils::getProductType($business -> id, $product -> id);
             $business -> makeHidden([
                 'tax_id', 'id_country', 'is_validated',
                 'id_breakfast_product', 'id_lunch_product', 'id_dinner_product',
                 'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
                 'directions', 'longitude', 'latitude',
             ]);
+            $user -> makeHidden([
+                'real_name', 'real_surname', 'username', 'email', 'phone', 'phone_prefix', 'sex',
+                'last_latitude', 'last_longitude', 'last_login_date',
+                'id_business', 'email_verified', 'is_admin',
+            ]);
             $results -> push([
                 'item' => $item,
                 'product' => $product,
                 'business' => $business,
+                'user' => $user,
+            ]);
+        }
+        return response() -> json([
+            'items' => $results,
+        ], 200);
+    }
+
+    public function searchItemsByText(Request $request) {
+        $validator = Validator::make($request -> all(), [
+            'text' => 'required',
+        ]);
+        if($validator -> fails()) {
+            return response() -> json([
+                'error' => $validator -> errors() -> toJson()
+            ], 422);
+        }
+        $search_text = strtolower($request -> input('text'));
+        $businesses = Business::all();
+        $coincidences = new Collection();
+        foreach($businesses as $business) {
+            $business_name = strtolower($business -> name);
+            similar_text($business_name, $search_text, $similarity);
+            if($similarity >= 40) {
+                $business -> similarity = $similarity;
+                $coincidences -> push($business);
+            } else if(strlen($search_text) >= 4) {
+                if(stripos($business_name, $search_text) !== false) { // Similar to MySQL "LIKE" operator
+                    $coincidences -> push($business);
+                }
+            }
+            $business -> makeHidden([
+                'description', 'id_country', 'latitude', 'longitude', 'directions',
+                'tax_id', 'created_at', 'is_validated'
+            ]);
+        }
+        $coincidences = $coincidences -> sortByDesc('similarity') -> values();
+        $products = new Collection();
+        $items = new Collection();
+        foreach($coincidences as $business) {
+            $current_products = Utils::getProductsFromBusiness($business -> id);
+            if($current_products !== null) {
+                $products = $products -> merge($current_products);
+            }
+        }
+        foreach($products as $product) {
+            $product_items = Utils::getItemsFromProduct($product -> id);
+            if($product_items !== null) {
+                $product_items = $product_items -> where('date', '>=', Carbon::now() -> startOfDay())
+                        -> where('date', '<=', Carbon::tomorrow() -> startOfDay());
+            }
+            $items = $items -> merge($product_items);
+        }
+        $results = new Collection();
+        foreach($items as $item) {
+            $product = Product::find($item -> id_product);
+            $product -> amount = Utils::getAvailableAmountOfItem($item, $product);
+            $business = Utils::findBusinessFromProduct($product -> id);
+            $user = User::where('id_business', $business -> id) -> first();
+            $item -> makeHidden([
+                'id_product',
+            ]);
+            $product -> makeHidden([
+                'ending_date',
+                'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
+            ]);
+            $product -> type = Utils::getProductType($business -> id, $product -> id);
+            $business -> makeHidden([
+                'tax_id', 'id_country', 'is_validated',
+                'id_breakfast_product', 'id_lunch_product', 'id_dinner_product',
+                'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
+                'directions', 'longitude', 'latitude',
+            ]);
+            $user -> makeHidden([
+                'real_name', 'real_surname', 'username', 'email', 'phone', 'phone_prefix', 'sex',
+                'last_latitude', 'last_longitude', 'last_login_date',
+                'id_business', 'email_verified', 'is_admin',
+            ]);
+            $results -> push([
+                'item' => $item,
+                'product' => $product,
+                'business' => $business,
+                'user' => $user,
             ]);
         }
         return response() -> json([
