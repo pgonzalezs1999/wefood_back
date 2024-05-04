@@ -482,7 +482,7 @@ class BusinessController extends Controller
 
     public function cancelValidation(Request $request) {
         $validator = Validator::make($request -> all(), [
-            'name' => 'required',
+            'username' => 'required',
         ]);
         if($validator -> fails()) {
             return response() -> json([
