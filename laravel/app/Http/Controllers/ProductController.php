@@ -539,7 +539,7 @@ class ProductController extends Controller
             ]);
         }
         return response() -> json([
-            'items' => $results,
+            'items' => $results -> reverse() -> values(),
         ], 200);
     }
 }
