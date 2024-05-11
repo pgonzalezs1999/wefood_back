@@ -89,4 +89,5 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function($router) {
 
     Route::post('/uploadImage', [ImageController::class, 'uploadImage']);
     Route::post('/getImage', [ImageController::class, 'getImage']);
+    Route::post('/removeImage', [ImageController::class, 'removeImage']);
 });

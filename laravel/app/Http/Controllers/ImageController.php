@@ -15,7 +15,7 @@ class ImageController extends Controller
             'meaning' => 'required',
             'image' => 'required'
         ]);
-        $image_find = Image::where('id_user', $request -> input('id_user')) -> where('id_user', $request -> input('id_user')) -> first();
+        $image_find = Image::where('id_user', $request -> input('id_user')) -> where('meaning', $request -> input('meaning')) -> first();
         $image = null;
         if($image_find != null) {
             $image = $image_find;
@@ -58,6 +58,46 @@ class ImageController extends Controller
         $image = Image::where('id_user', $request -> input('id_user')) -> where('meaning', $request -> input('meaning')) -> first();
         return response() -> json([
             'image' => $image
+        ], 200);
+    }
+
+    public function removeImage(Request $request) {
+        $validator = Validator::make($request -> all(), [
+            'id_user' => 'required',
+            'meaning' => 'required',
+        ]);
+        if($validator -> fails()) {
+            return response() -> json([
+                'error' => $validator -> errors()
+            ], 400);
+        }
+        $image = Image::where('id_user', $request -> input('id_user'))->where('meaning', $request -> input('meaning')) -> first();
+        if($image == null) {
+            return response() -> json([
+                'error' => 'Image not found'
+            ], 404);
+        }
+        if($request -> input('meaning') === 'profile') {
+            $image -> delete();
+        } else {
+            // All image with the same id_user and the same meaning letter
+            $related_images = Image::where('id_user', $request -> input('id_user')) -> where('meaning', 'like', substr($request -> input('meaning'), 0, 1) . '%') -> get();
+            $related_images = $related_images -> sortBy(function ($image) { // Sort by meaning number
+                return intval(substr($image -> meaning, 1));
+            });
+            $deleted_image_number = intval(substr($request -> input('meaning'), 1));
+            $image -> delete();
+            foreach($related_images as $related_image) {
+                $current_number = intval(substr($related_image -> meaning, 1));
+                if($current_number > $deleted_image_number) {
+                    $new_number = $current_number - 1;
+                    $related_image -> meaning = substr($request -> input('meaning'), 0, 1) . $new_number;
+                    $related_image -> save();
+                }
+            }
+        }
+        return response() -> json([
+            'message' => 'Image removed successfully'
         ], 200);
     }
 }

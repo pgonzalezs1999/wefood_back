@@ -16,6 +16,7 @@ use App\Models\Business;
 use App\Models\Favourite;
 use App\Models\Comment;
 use App\Models\User;
+use App\Models\Image;
 use App\Utils;
 
 class ProductController extends Controller
@@ -171,6 +172,12 @@ class ProductController extends Controller
                         'error' => 'Cannot delete the product. There are pending orders.'
                     ], 422);
                 }
+            }
+        }
+        for($i = 1; $i <= 10; $i++) {
+            $image = Image::where('id_user', $request -> input('mw_user') -> id) -> where('meaning', strtolower($request -> input('type')) . $i);
+            if($image != null) {
+                $image -> delete();
             }
         }
         foreach($items as $item) {
@@ -470,17 +477,18 @@ class ProductController extends Controller
                 'error' => $validator -> errors() -> toJson()
             ], 422);
         }
-        $search_text = strtolower($request -> input('text'));
+        $search_text = Utils::cleanText($request -> input('text'));
+
         $businesses = Business::all();
         $coincidences = new Collection();
         foreach($businesses as $business) {
             $business_name = strtolower($business -> name);
             similar_text($business_name, $search_text, $similarity);
-            if($similarity >= 40) {
+            if($similarity >= 45) {
                 $business -> similarity = $similarity;
                 $coincidences -> push($business);
-            } else if(strlen($search_text) >= 4) {
-                if(stripos($business_name, $search_text) !== false) { // Similar to MySQL "LIKE" operator
+            } else if(strlen($search_text) >= 3) {
+                if(stripos(Utils::cleanText($business_name), $search_text) !== false) { // Similar to MySQL "LIKE" operator
                     $coincidences -> push($business);
                 }
             }

@@ -177,4 +177,24 @@ class Utils {
         $rate /= count($comments);
         return $rate;
     }
+
+    public static function cleanText(string $text) {
+        $cleaned_text = strtolower($text);
+        $cleaned_text = str_replace('á', 'a', $cleaned_text);
+        $cleaned_text = str_replace('é', 'e', $cleaned_text);
+        $cleaned_text = str_replace('í', 'i', $cleaned_text);
+        $cleaned_text = str_replace('ó', 'o', $cleaned_text);
+        $cleaned_text = str_replace('ú', 'u', $cleaned_text);
+        $cleaned_text = str_replace('à', 'a', $cleaned_text);
+        $cleaned_text = str_replace('è', 'e', $cleaned_text);
+        $cleaned_text = str_replace('ì', 'i', $cleaned_text);
+        $cleaned_text = str_replace('ò', 'o', $cleaned_text);
+        $cleaned_text = str_replace('ù', 'u', $cleaned_text);
+        $cleaned_text = str_replace('ä', 'a', $cleaned_text);
+        $cleaned_text = str_replace('ë', 'e', $cleaned_text);
+        $cleaned_text = str_replace('ï', 'i', $cleaned_text);
+        $cleaned_text = str_replace('ö', 'o', $cleaned_text);
+        $cleaned_text = str_replace('ü', 'u', $cleaned_text);
+        return $cleaned_text;
+    }
 }
