@@ -118,7 +118,7 @@ class ProductController extends Controller
             Carbon::tomorrow() -> startOfDay(),
             Carbon::tomorrow() -> addDay() -> startOfDay(),
         ];
-        for($i = 0; $i < 3; $i++) {
+        for($i = 0; $i < 2; $i++) {
             if($product -> {$weekDays[$i]} == 1) {
                 Item::create([
                     'id_product' => $product -> id,
@@ -232,6 +232,28 @@ class ProductController extends Controller
             ], 422);
         }
         $product = Product::find($request -> input('id'));
+
+        $todayName = strtolower(Carbon::now() -> englishDayOfWeek);
+        $tomorrowName = strtolower(Carbon::tomorrow() -> englishDayOfWeek);
+
+        $todayField = 'working_on_' . $todayName;
+        $tomorrowField = 'working_on_' . $tomorrowName;
+
+        if($product -> {$todayField} == false && $request -> input($todayField) == true) {
+            Item::create([
+                'id_product' => $product -> id,
+                'date' => Carbon::now() -> startOfDay(),
+            ]);
+        }
+        if($product -> {$tomorrowField} == false && $request -> input($tomorrowField) == true) {
+            Item::create([
+                'id_product' => $product -> id,
+                'date' => Carbon::tomorrow() -> startOfDay(),
+            ]);
+        }
+        $shouldDeleteToday = ($product -> {$todayField} == true && $request -> input($todayField) == false);
+        $shouldDeleteTommorrow = ($product -> {$tomorrowField} == true && $request -> input($tomorrowField) == false);
+
         $product -> price = $request -> input('price');
         $product -> amount = $request -> input('amount');
         $product -> ending_date = $request -> input('ending_date');
@@ -249,8 +271,18 @@ class ProductController extends Controller
         $product -> working_on_saturday = $request -> input('working_on_saturday');
         $product -> working_on_sunday = $request -> input('working_on_sunday');
         $product -> save();
+
+        if($shouldDeleteToday) {
+            $item = Item::where('id_product', $product -> id) -> where('date', Carbon::now() -> startOfDay()) -> first();
+            $item -> delete();
+        }
+        if($shouldDeleteTommorrow) {
+            $item = Item::where('id_product', $product -> id) -> where('date', Carbon::tomorrow() -> startOfDay()) -> first();
+            $item -> delete();
+        }
+
         return response() -> json([
-            'message' => 'Product created successfully.',
+            'message' => 'Product updated successfully.',
             'product' => $product,
         ], 201);
     }

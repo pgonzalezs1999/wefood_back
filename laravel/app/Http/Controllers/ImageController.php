@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use Auth;
 use App\Models\Image;
+use App\Models\Business;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Validator;
@@ -55,7 +58,24 @@ class ImageController extends Controller
                 'error' => $validator -> errors() -> toJson()
             ], 422);
         }
-        $image = Image::where('id_user', $request -> input('id_user')) -> where('meaning', $request -> input('meaning')) -> first();
+        $image;
+        if(strlen($request -> input('meaning')) < 4) { // If is everything but "profile"
+            $user = Auth::user();
+            $business = Business::find($user -> id_business);
+            $product;
+            if(strtolower($request -> input('meaning')[0]) == 'b') {
+                $product = Product::find($business -> id_breakfast_product);
+            } else if(strtolower($request -> input('meaning')[0]) == 'l') {
+                $product = Product::find($business -> id_lunch_product);
+            } else if(strtolower($request -> input('meaning')[0]) == 'd') {
+                $product = Product::find($business -> id_dinner_product);
+            }
+            if($product != null) {
+                $image = Image::where('id_user', $request -> input('id_user')) -> where('meaning', $request -> input('meaning')) -> first();
+            }
+        } else { // If is "profile"
+            $image = Image::where('id_user', $request -> input('id_user')) -> where('meaning', $request -> input('meaning')) -> first();
+        }
         return response() -> json([
             'image' => $image
         ], 200);
