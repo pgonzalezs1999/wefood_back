@@ -52,7 +52,7 @@ class Utils {
                 'code' => '404',
             ];
         }
-        $business = Business::find($product -> business_id);
+        $business = Business::find($product -> id_business);
         $business -> makeHidden([
             'tax_id', 'id_country', 'is_validated',
         ]);
@@ -129,16 +129,23 @@ class Utils {
         return $items;
     }
 
-    public static function getItemsFromBusiness(int $id_business) {
-        $business = Business::find($id_business);
-        if($product == null) {
+    public static function getItemsFromBusiness($business) {
+        if($business == null) {
             return [
-                'error' => 'Product not found.',
+                'error' => 'Owner business not found.',
                 'code' => '404',
             ];
         }
-        $products = Product::where('id_business', $business->id) -> get() -> pluck('id') -> toArray();
-        $items = Item::whereIn('id_product', $productIds) -> get();
+        $products = Product::where('id_business', $business -> id) -> get();
+        $items = new Collection();
+        foreach($products as $product) {
+            $found_items = Item::where('id_product', $product -> id) -> get();
+            foreach($found_items as $found) {
+                if($found != null) {
+                    $items -> push($found);
+                }
+            }
+        }
         if(count($items) == 0) {
             return null;
         }

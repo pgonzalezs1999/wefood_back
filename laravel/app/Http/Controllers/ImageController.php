@@ -3,9 +3,10 @@
 namespace App\Http\Controllers;
 
 use Auth;
-use App\Models\Image;
+use App\Models\User;
 use App\Models\Business;
 use App\Models\Product;
+use App\Models\Image;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Validator;
@@ -60,9 +61,8 @@ class ImageController extends Controller
         }
         $image;
         if(strlen($request -> input('meaning')) < 4) { // If is everything but "profile"
-            $user = Auth::user();
+            $user = User::find($request -> input('id_user'));
             $business = Business::find($user -> id_business);
-            $product;
             if(strtolower($request -> input('meaning')[0]) == 'b') {
                 $product = Product::where('id_business', $business -> id) -> where('product_type', 'b') -> first();
             } else if(strtolower($request -> input('meaning')[0]) == 'l') {

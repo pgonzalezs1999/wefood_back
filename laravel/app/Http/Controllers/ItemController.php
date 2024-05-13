@@ -100,34 +100,35 @@ class ItemController extends Controller
         $businesses = $businesses -> values() -> take(30) -> all();
         $results = new Collection();
         foreach($businesses as $business) {
-            $items = Utils::getItemsFromBusiness($business -> id);
-            foreach($items as $item) {
-                if($item -> date == Carbon::today() -> startOfDay()
-                    || $item -> date == Carbon::tomorrow() -> startOfDay()
-                ){
-                    $product = Product::find($item -> id_product);
-                    $product -> amount = Utils::getAvailableAmountOfItem($item, $product);
-                    $product -> makeHidden([
-                        'description', 'ending_date',
-                        'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
-                    ]);
-                    $product -> type = Utils::getProductType($business -> id, $product -> id);
-                    $business -> makeHidden([
-                        'description', 'tax_id', 'is_validated',
-                        'id_country', 'longitude', 'latitude', 'directions',
-                    ]);
-                    $business -> rate = Utils::getBusinessRate($business -> id);
-                    $owner = User::where('id_business', $business -> id) -> first();
-                    $owner -> makeHidden([
-                        'real_name', 'real_surname', 'username', 'email', 'phone', 'phone_prefix', 'sex',
-                        'last_latitude', 'last_longitude', 'last_login_date', 'email_verified', 'is_admin',
-                    ]);
-                    $results = $results -> push([
-                        'product' => $product,
-                        'business' => $business,
-                        'user' => $owner,
-                        'item' => $item,
-                    ]);
+            $items = Utils::getItemsFromBusiness($business);
+            if($items != null) {
+                foreach($items as $item) {
+                    if($item -> date == Carbon::today() -> startOfDay()
+                        || $item -> date == Carbon::tomorrow() -> startOfDay()
+                    ){
+                        $product = Product::find($item -> id_product);
+                        $product -> amount = Utils::getAvailableAmountOfItem($item, $product);
+                        $product -> makeHidden([
+                            'description', 'ending_date',
+                            'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
+                        ]);
+                        $business -> makeHidden([
+                            'description', 'tax_id', 'is_validated',
+                            'id_country', 'longitude', 'latitude', 'directions',
+                        ]);
+                        $business -> rate = Utils::getBusinessRate($business -> id);
+                        $owner = User::where('id_business', $business -> id) -> first();
+                        $owner -> makeHidden([
+                            'real_name', 'real_surname', 'username', 'email', 'phone', 'phone_prefix', 'sex',
+                            'last_latitude', 'last_longitude', 'last_login_date', 'email_verified', 'is_admin',
+                        ]);
+                        $results = $results -> push([
+                            'product' => $product,
+                            'business' => $business,
+                            'user' => $owner,
+                            'item' => $item,
+                        ]);
+                    }
                 }
             }
         }
@@ -160,34 +161,35 @@ class ItemController extends Controller
         $sortedBusinesses = $businesses -> sortBy('distance') -> values() -> take(30) -> all();
         $results = array();
         foreach($sortedBusinesses as $business) {
-            $items = Utils::getItemsFromBusiness($business -> id);
-            foreach($items as $item) {
-                if($item -> date == Carbon::today() -> startOfDay()
-                    || $item -> date == Carbon::tomorrow() -> startOfDay()
-                ){
-                    $product = Product::find($item -> id_product);
-                    $product -> amount = Utils::getAvailableAmountOfItem($item, $product);
-                    $product -> makeHidden([
-                        'description', 'ending_date',
-                        'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
-                    ]);
-                    $product -> type = Utils::getProductType($business -> id, $product -> id);
-                    $business -> makeHidden([
-                        'description', 'tax_id', 'is_validated',
-                        'id_country', 'longitude', 'latitude', 'directions',
-                    ]);
-                    $business -> rate = Utils::getBusinessRate($business -> id);
-                    $owner = User::where('id_business', $business -> id) -> first();
-                    $owner -> makeHidden([
-                        'real_name', 'real_surname', 'username', 'email', 'phone', 'phone_prefix', 'sex',
-                        'last_latitude', 'last_longitude', 'last_login_date', 'email_verified', 'is_admin',
-                    ]);
-                    $results = array_merge($results, [[
-                        'product' => $product,
-                        'business' => $business,
-                        'user' => $owner,
-                        'item' => $item,
-                    ]]);
+            $items = Utils::getItemsFromBusiness($business);
+            if($items != null) {
+                foreach($items as $item) {
+                    if($item -> date == Carbon::today() -> startOfDay()
+                        || $item -> date == Carbon::tomorrow() -> startOfDay()
+                    ){
+                        $product = Product::find($item -> id_product);
+                        $product -> amount = Utils::getAvailableAmountOfItem($item, $product);
+                        $product -> makeHidden([
+                            'description', 'ending_date',
+                            'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
+                        ]);
+                        $business -> makeHidden([
+                            'description', 'tax_id', 'is_validated',
+                            'id_country', 'longitude', 'latitude', 'directions',
+                        ]);
+                        $business -> rate = Utils::getBusinessRate($business -> id);
+                        $owner = User::where('id_business', $business -> id) -> first();
+                        $owner -> makeHidden([
+                            'real_name', 'real_surname', 'username', 'email', 'phone', 'phone_prefix', 'sex',
+                            'last_latitude', 'last_longitude', 'last_login_date', 'email_verified', 'is_admin',
+                        ]);
+                        $results = array_merge($results, [[
+                            'product' => $product,
+                            'business' => $business,
+                            'user' => $owner,
+                            'item' => $item,
+                        ]]);
+                    }
                 }
             }
         }

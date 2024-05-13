@@ -262,7 +262,10 @@ class OrderController extends Controller
             ], 422);
         }
         $order = Order::find($request -> input('id_order'));
-        if($order -> id_business != $request -> input('mw_business') -> id) {
+        $item = Item::find($order -> id_item);
+        $product = Product::find($item -> id_product);
+        $business = Business::find($product -> id_business);
+        if($business -> id != $request -> input('mw_business') -> id) {
             return response() -> json([
                 'error' => 'Order not belonging to this business.'
             ], 403);
@@ -272,7 +275,6 @@ class OrderController extends Controller
                 'error' => 'Order already completed.'
             ], 422);
         }
-        $item = Item::find($order -> id_item);
         if($item -> date < Carbon::today() -> startOfDay()) {
             return response() -> json([
                 'error' => 'Order not available anymore.'

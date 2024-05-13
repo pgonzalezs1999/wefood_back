@@ -92,7 +92,6 @@ class ProductController extends Controller
                 'error' => 'Could not create the product.'
             ], 500);
         }
-        $product -> type = $type;
         $todayField = 'working_on_' . strtolower(Carbon::now() -> englishDayOfWeek);
         $tomorrowField = 'working_on_' . strtolower(Carbon::tomorrow() -> englishDayOfWeek);
         $afterTomorrowField = 'working_on_' . strtolower(Carbon::tomorrow() -> addDay() -> englishDayOfWeek);
@@ -155,8 +154,6 @@ class ProductController extends Controller
         foreach($items as $item) {
             $item -> delete();
         }
-        $request -> input('mw_business') -> $chosenField = null;
-        $request -> input('mw_business') -> save();
         $product -> delete();
         return response() -> json([
             'message' => 'Product deleted successfully.',
@@ -194,18 +191,22 @@ class ProductController extends Controller
             return response() -> json([
                 'error' => $validator -> errors() -> toJson()
             ], 422);
-        }
+        }        
         $product = Product::find($request -> input('id'));
-        return response() -> json([
-            'error' => 'Product not found.',
-        ], 404);
+        if($product == null) {
+            return response() -> json([
+                'error' => 'Product not found.',
+            ], 404);
+        }
         $business = Business::find($product -> id_business);
-        return response() -> json([
-            'error' => 'Owner business not found.',
-        ], 404);
+        if($business == null) {
+            return response() -> json([
+                'error' => 'Owner business not found.',
+            ], 404);
+        }
         if($business -> id != $request -> input('mw_business') -> id) {
             return response() -> json([
-                'error' => 'This product does not belong to this business.'
+                'error' => 'This product does not belong to this business.',
             ], 422);
         }
         $product = Product::find($request -> input('id'));
@@ -238,8 +239,8 @@ class ProductController extends Controller
         $product -> ending_hour = $request -> input('ending_hour');
         $product -> vegetarian = $request -> input('vegetarian');
         $product -> vegan = $request -> input('vegan');
-        $product -> dessert = $request -> input('junk');
-        $product -> dessert = $request -> input('junk');
+        $product -> dessert = $request -> input('dessert');
+        $product -> junk = $request -> input('junk');
         $product -> working_on_monday = $request -> input('working_on_monday');
         $product -> working_on_tuesday = $request -> input('working_on_tuesday');
         $product -> working_on_wednesday = $request -> input('working_on_wednesday');
@@ -274,14 +275,14 @@ class ProductController extends Controller
                 'error' => $validator -> errors() -> toJson()
             ], 422);
         }
-        $type = Utils::getProductType($request -> input('mw_business') -> id, $request -> input('id'));
-        if($type == null) {
+        $product = Product::find($request -> input('id'));
+        if($product -> id_business != $request -> input('mw_business') -> id) {
             return response() -> json([
                 'error' => 'This product does not belong to this business.'
             ], 422);
         }
         try {
-            $image_path = "storage/images/{$request -> input('mw_user') -> id}/business/{$type}";
+            $image_path = "storage/images/{$request -> input('mw_user') -> id}/business/{$product -> product_type}";
             $nextImageNumber = Utils::getNextImageNumber($image_path);
             if($nextImageNumber >= 10) {
                 return response() -> json([
@@ -296,7 +297,7 @@ class ProductController extends Controller
             );
         } catch(\Exception $e) {
             return response() -> json([
-                'error' => 'Could not upload the image.',
+                'error' => $e,
             ], 500);
         }
         return response() -> json([
@@ -314,7 +315,6 @@ class ProductController extends Controller
                 'error' => $validator -> errors() -> toJson()
             ], 422);
         }
-        $type = Utils::getProductType($request -> input('mw_business') -> id, $request -> input('id'));
         if($type == null) {
             return response() -> json([
                 'error' => 'This product does not belong to this business.'
@@ -453,7 +453,6 @@ class ProductController extends Controller
                 'ending_date',
                 'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
             ]);
-            $product -> type = Utils::getProductType($business -> id, $product -> id);
             $business -> makeHidden([
                 'tax_id', 'id_country', 'is_validated',
                 'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
@@ -535,7 +534,6 @@ class ProductController extends Controller
                 'ending_date',
                 'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
             ]);
-            $product -> type = Utils::getProductType($business -> id, $product -> id);
             $business -> makeHidden([
                 'tax_id', 'id_country', 'is_validated',
                 'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',

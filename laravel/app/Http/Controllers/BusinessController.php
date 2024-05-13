@@ -399,7 +399,6 @@ class BusinessController extends Controller
                         'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
                     ]);
                     $product -> favourite = $is_favourite;
-                    $product -> type = Utils::getProductType($business -> id, $product -> id);
                     $business -> makeHidden([
                         'description', 'tax_id', 'is_validated',
                         'id_country', 'longitude', 'latitude', 'directions',
@@ -516,9 +515,9 @@ class BusinessController extends Controller
         $request -> input('mw_business') -> makeHidden([
             'is_validated',
         ]);
-        $breakfast = Product::where('id_business', $business -> id) -> where('product_type', 'b') -> first();
-        $lunch = Product::where('id_business', $business -> id) -> where('product_type', 'l') -> first();
-        $dinner = Product::where('id_business', $business -> id) -> where('product_type', 'd') -> first();
+        $breakfast = Product::where('id_business', $request -> input('mw_business') -> id) -> where('product_type', 'b') -> first();
+        $lunch = Product::where('id_business', $request -> input('mw_business') -> id) -> where('product_type', 'l') -> first();
+        $dinner = Product::where('id_business', $request -> input('mw_business') -> id) -> where('product_type', 'd') -> first();
         return response() -> json([
             'breakfast' => $breakfast,
             'lunch' => $lunch,

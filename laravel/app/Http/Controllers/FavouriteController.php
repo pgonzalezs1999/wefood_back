@@ -114,7 +114,7 @@ class FavouriteController extends Controller
         }
         $results = new Collection();
         foreach($businesses as $business) {
-            $items = Utils::getItemsFromBusiness($business -> id);
+            $items = Utils::getItemsFromBusiness($business);
             foreach($items as $item) {
                 if($item -> date == Carbon::today() -> startOfDay()
                     || $item -> date == Carbon::tomorrow() -> startOfDay()
@@ -129,7 +129,6 @@ class FavouriteController extends Controller
                         'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
                     ]);
                     $product -> favourite = $is_favourite;
-                    $product -> type = Utils::getProductType($business -> id, $product -> id);
                     $business -> makeHidden([
                         'description', 'tax_id', 'is_validated',
                         'id_country', 'longitude', 'latitude', 'directions',
