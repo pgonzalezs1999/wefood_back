@@ -77,9 +77,9 @@ class UserController extends Controller
         $business = Business::find($user -> id_business);
         if($business != null) {
             $products = [];
-            $breakfastProduct = Product::find($business -> id_breakfast_product);
-            $lunchProduct = Product::find($business -> id_lunch_product);
-            $dinnerProduct = Product::find($business -> id_dinner_product);
+            $breakfastProduct = Product::where('id_business', $business) -> where('product_type', 'b');
+            $lunchProduct = Product::where('id_business', $business) -> where('product_type', 'l');
+            $dinnerProduct = Product::where('id_business', $business) -> where('product_type', 'd');
             if($breakfastProduct != null) {
                 $products[] = $breakfastProduct;
             }
@@ -294,7 +294,7 @@ class UserController extends Controller
 
     public function checkPhoneAvailability(Request $request) {
         $validator = Validator::make($request -> all(), [
-            'phone' => 'required|numeric|min:10000000|max:999999999999', // 8-12 digits
+            'phone' => 'required|numeric|min:100000000|max:999999999', // 9 digits
         ]);
         if($validator -> fails()) {
             return response() -> json([

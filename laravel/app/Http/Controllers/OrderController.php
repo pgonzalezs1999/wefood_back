@@ -48,17 +48,8 @@ class OrderController extends Controller
                 'error' => 'Product not found.',
             ], 404);
         }
-        $business = Business::where('id_breakfast_product', $product -> id)
-                -> orWhere('id_lunch_product', $product -> id)
-                -> orWhere('id_dinner_product', $product -> id)
-                -> first();
-        if($business -> id_breakfast_product == $product -> id) {
-            $mealType = 'B';
-        } else if($business -> id_lunch_product == $product -> id) {
-            $mealType = 'L';
-        } else if($business -> id_dinner_product == $product -> id) {
-            $mealType = 'D';
-        }
+        $business = Business::find($product -> id_business);
+        $mealType = strtoupper($business -> product_type);
         $parentProduct = Product::find($item -> id_product);
         $availableItems = Utils::getAvailableAmountOfItem($item, $parentProduct);
         if($request -> input('amount') > $availableItems) {
@@ -98,14 +89,10 @@ class OrderController extends Controller
                 if($item -> date >= Carbon::today() -> startOfDay()) {
                     $product = Product::find($item -> id_product);
                     if($product != null) {
-                        $business = Business::where('id_breakfast_product', $product -> id)
-                        -> orWhere('id_lunch_product', $product -> id)
-                        -> orWhere('id_dinner_product', $product -> id)
-                        -> first();
+                        $business = Business::find($product -> id_business);
                         if($business != null) {
                             $business -> makeHidden([
                                 'description', 'tax_id', 'is_validated',
-                                'id_breakfast_product', 'id_lunch_product', 'id_dinner_product',
                                 'id_currency', 'id_country',
                                 'directions', 'longitude', 'latitude',
                                 'created_at',
@@ -148,10 +135,7 @@ class OrderController extends Controller
     }
 
     public function getPendingOrdersBusiness(Request $request) {
-        $products = Product::where('id', $request -> input('mw_business') -> id_breakfast_product)
-                -> orWhere('id', $request -> input('mw_business') -> id_lunch_product)
-                -> orWhere('id', $request -> input('mw_business') -> id_dinner_product)
-                -> get() -> pluck('id');
+        $products = Product::where('id_business', $request -> input('mw_business') -> id) -> get() -> pluck('id');
         $items = Item::whereIn('id_product', $products)
                 -> where('date', '>=', Carbon::today() -> startOfDay())
                 -> get() -> pluck('id');
@@ -174,14 +158,10 @@ class OrderController extends Controller
             if($item != null) {
                 $product = Product::find($item -> id_product);
                 if($product != null) {
-                    $business = Business::where('id_breakfast_product', $product -> id)
-                            -> orWhere('id_lunch_product', $product -> id)
-                            -> orWhere('id_dinner_product', $product -> id)
-                            -> first();
+                    $business = Business::find($product -> id_business);
                     if($business != null) {
                         $business -> makeHidden([
                             'description', 'tax_id', 'is_validated',
-                            'id_breakfast_product', 'id_lunch_product', 'id_dinner_product',
                             'id_currency', 'id_country',
                             'directions', 'longitude', 'latitude',
                         ]);

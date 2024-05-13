@@ -100,10 +100,7 @@ class ItemController extends Controller
         $businesses = $businesses -> values() -> take(30) -> all();
         $results = new Collection();
         foreach($businesses as $business) {
-            $items = Item::where('id_product', $business -> id_breakfast_product)
-                    -> orWhere('id_product', $business -> id_lunch_product)
-                    -> orWhere('id_product', $business -> id_dinner_product)
-                    -> get();
+            $items = Utils::getItemsFromBusiness($business -> id);
             foreach($items as $item) {
                 if($item -> date == Carbon::today() -> startOfDay()
                     || $item -> date == Carbon::tomorrow() -> startOfDay()
@@ -118,7 +115,6 @@ class ItemController extends Controller
                     $business -> makeHidden([
                         'description', 'tax_id', 'is_validated',
                         'id_country', 'longitude', 'latitude', 'directions',
-                        'id_breakfast_product', 'id_lunch_product', 'id_dinner_product', 'distance',
                     ]);
                     $business -> rate = Utils::getBusinessRate($business -> id);
                     $owner = User::where('id_business', $business -> id) -> first();
@@ -164,10 +160,7 @@ class ItemController extends Controller
         $sortedBusinesses = $businesses -> sortBy('distance') -> values() -> take(30) -> all();
         $results = array();
         foreach($sortedBusinesses as $business) {
-            $items = Item::where('id_product', $business -> id_breakfast_product)
-                    -> orWhere('id_product', $business -> id_lunch_product)
-                    -> orWhere('id_product', $business -> id_dinner_product)
-                    -> get();
+            $items = Utils::getItemsFromBusiness($business -> id);
             foreach($items as $item) {
                 if($item -> date == Carbon::today() -> startOfDay()
                     || $item -> date == Carbon::tomorrow() -> startOfDay()
@@ -182,7 +175,6 @@ class ItemController extends Controller
                     $business -> makeHidden([
                         'description', 'tax_id', 'is_validated',
                         'id_country', 'longitude', 'latitude', 'directions',
-                        'id_breakfast_product', 'id_lunch_product', 'id_dinner_product', 'distance',
                     ]);
                     $business -> rate = Utils::getBusinessRate($business -> id);
                     $owner = User::where('id_business', $business -> id) -> first();

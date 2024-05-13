@@ -123,10 +123,7 @@ class BusinessController extends Controller
         ]);
         $favourites = Favourite::where('id_business', $request -> input('mw_business') -> id) -> count();
         $comments = Comment::where('id_business', $request -> input('mw_business') -> id) -> get();
-        $products = Product::where('id', $request -> input('mw_business') -> id_breakfast_product)
-                -> orWhere('id', $request -> input('mw_business') -> id_lunch_product)
-                -> orWhere('id', $request -> input('mw_business') -> id_dinner_product)
-                -> get() -> pluck('id');
+        $products = Product::where('id_business', $request -> input('mw_business') -> id) -> get() -> pluck('id');
         $items = Item::whereIn('id_product', $products) -> get() -> pluck('id');
         $totalOrders = Order::whereIn('id_item', $items) -> get() -> count();
         $pendingItems = Item::whereIn('id_product', $products)
@@ -158,19 +155,15 @@ class BusinessController extends Controller
         }
         $business = Business::find($request -> input('id_business'));
         $business -> makeHidden([
-            'id_breakfast_product', 'id_lunch_product', 'id_dinner_product',
             'longitude', 'latitude', 'is_validated',
             'tax_id', 'id_country',
         ]);
-        $breakfast = Product::find($business -> id_breakfast_product);
-        $lunch = Product::find($business -> id_lunch_product);
-        $dinner = Product::find($business -> id_dinner_product);
+        $breakfast = Product::where('id_business', $business -> id) -> where('product_type', 'b') -> first();
+        $lunch = Product::where('id_business', $business -> id) -> where('product_type', 'l') -> first();
+        $dinner = Product::where('id_business', $business -> id) -> where('product_type', 'd') -> first();
         $favourites = Favourite::where('id_business', $request -> input('id_business')) -> count();
         $comments = Comment::where('id_business', $request -> input('id_business')) -> get();
-        $products = Product::where('id', $business -> id_breakfast_product)
-                -> orWhere('id', $business -> id_lunch_product)
-                -> orWhere('id', $business -> id_dinner_product)
-                -> get() -> pluck('id');
+        $products = [ Product::where('id_business', $business -> id) -> get() -> pluck('id') ];
         $items = Item::whereIn('id_product', $products) -> get() -> pluck('id');
         $totalOrders = Order::whereIn('id_item', $items) -> get() -> count();
         return response() -> json([
@@ -386,10 +379,12 @@ class BusinessController extends Controller
         $sortedBusinesses = $businesses -> sortBy('distance') -> values() -> take(30) -> all();
         $results = array();
         foreach($sortedBusinesses as $business) {
-            $items = Item::where('id_product', $business -> id_breakfast_product)
-                    -> orWhere('id_product', $business -> id_lunch_product)
-                    -> orWhere('id_product', $business -> id_dinner_product)
-                    -> get();
+            $products = Product::where('id_business', $business -> id);
+            $items = new Collection();
+            foreach($products as $product) {
+                $item = Item::where('id_product', $product -> id) -> get();
+                $items -> push($item);
+            }
             foreach($items as $item) {
                 if($item -> date == Carbon::today() -> startOfDay()
                     || $item -> date == Carbon::tomorrow() -> startOfDay()
@@ -408,7 +403,6 @@ class BusinessController extends Controller
                     $business -> makeHidden([
                         'description', 'tax_id', 'is_validated',
                         'id_country', 'longitude', 'latitude', 'directions',
-                        'id_breakfast_product', 'id_lunch_product', 'id_dinner_product', 'distance',
                     ]);
                     $business -> rate = Utils::getBusinessRate($business -> id);
                     $results = array_merge($results, [[
@@ -522,9 +516,9 @@ class BusinessController extends Controller
         $request -> input('mw_business') -> makeHidden([
             'is_validated',
         ]);
-        $breakfast = Product::where('id', $request -> input('mw_business') -> id_breakfast_product) -> first();
-        $lunch = Product::where('id', $request -> input('mw_business') -> id_lunch_product) -> first();
-        $dinner = Product::where('id', $request -> input('mw_business') -> id_dinner_product) -> first();
+        $breakfast = Product::where('id_business', $business -> id) -> where('product_type', 'b') -> first();
+        $lunch = Product::where('id_business', $business -> id) -> where('product_type', 'l') -> first();
+        $dinner = Product::where('id_business', $business -> id) -> where('product_type', 'd') -> first();
         return response() -> json([
             'breakfast' => $breakfast,
             'lunch' => $lunch,

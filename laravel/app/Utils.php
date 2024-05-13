@@ -19,19 +19,6 @@ class Utils {
 
     public static array $validImageTypes = ['jpg', 'png', 'gif'];
 
-    public static function getProductType(int $id_business, int $id_product) {
-        $business = Business::where('id', $id_business) -> first();
-        if($business -> id_breakfast_product == $id_product) {
-            return 'B';
-        } else if($business -> id_lunch_product == $id_product) {
-            return 'L';
-        } else if($business -> id_dinner_product == $id_product) {
-            return 'D';
-        } else {
-            return null;
-        }
-    }
-
     public static function getNextImageNumber(string $imagePath) {
         $i = 0;
         while(Storage::disk('public') -> exists("$imagePath/$i.jpg") ||
@@ -65,13 +52,9 @@ class Utils {
                 'code' => '404',
             ];
         }
-        $business = Business::where('id_breakfast_product', $product -> id)
-                -> orWhere('id_lunch_product', $product -> id)
-                -> orWhere('id_dinner_product', $product -> id)
-                -> first();
+        $business = Business::find($product -> business_id);
         $business -> makeHidden([
             'tax_id', 'id_country', 'is_validated',
-            'id_breakfast_product', 'id_lunch_product', 'id_dinner_product',
         ]);
         $product -> makeHidden([
             'ending_date',
@@ -124,10 +107,7 @@ class Utils {
                 'code' => '404',
             ];
         }
-        $products = Product::where('id', $business -> id_breakfast_product)
-                -> orWhere('id', $business -> id_lunch_product)
-                -> orWhere('id', $business -> id_dinner_product)
-                -> get();
+        $products = Product::where('id_business', $business -> id) -> get();
         if(count($products) == 0) {
             return null;
         }
@@ -149,6 +129,22 @@ class Utils {
         return $items;
     }
 
+    public static function getItemsFromBusiness(int $id_business) {
+        $business = Business::find($id_business);
+        if($product == null) {
+            return [
+                'error' => 'Product not found.',
+                'code' => '404',
+            ];
+        }
+        $products = Product::where('id_business', $business->id) -> get() -> pluck('id') -> toArray();
+        $items = Item::whereIn('id_product', $productIds) -> get();
+        if(count($items) == 0) {
+            return null;
+        }
+        return $items;
+    }
+
     public static function getBusinessesFromDistance(float $latitude, float $longitude, float $distance) {
         // Distance in longitude and latitude
         $businesses = Business::whereBetween('longitude', [$longitude - $distance, $longitude + $distance])
@@ -158,10 +154,8 @@ class Utils {
     }
 
     public static function findBusinessFromProduct(int $id_product) {
-        $business = Business::where('id_breakfast_product', $id_product)
-                -> orWhere('id_lunch_product', $id_product)
-                -> orWhere('id_dinner_product', $id_product)
-                -> first();
+        $product = Product::find($id_product);
+        $business = Business::find($product -> id_business);
         return $business;
     }
 

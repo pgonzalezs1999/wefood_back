@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use App\Models\Product;
 use App\Models\Item;
 use App\Models\Business;
+use App\Utils;
 
 class addItemsToUnlimitedProducts extends Command
 {
@@ -30,10 +31,7 @@ class addItemsToUnlimitedProducts extends Command
             Carbon::tomorrow() -> startOfDay()
         ];
         foreach($products as $product) {
-            $business = Business::where('id_breakfast_product', $product -> id)
-                -> orWhere('id_lunch_product', $product -> id)
-                -> orWhere('id_dinner_product', $product -> id)
-                -> first();
+            $business = Utils::findBusinessFromProduct();
             if($business == null) {
                 $product -> delete();
                 $items = Item::where('id_product', $product -> id) -> get();

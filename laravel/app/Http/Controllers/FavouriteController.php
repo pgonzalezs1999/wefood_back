@@ -90,7 +90,6 @@ class FavouriteController extends Controller
             $newBusiness = Business::find($favourite -> id_business);
             $newBusiness -> makeHidden([
                 'tax_id', 'is_validated',
-                'id_breakfast_product', 'id_lunch_product', 'id_dinner_product',
                 'id_currency', 'id_country', 'longitude', 'latitude',
             ]);
             $businesses = array_merge($businesses, Array($newBusiness));
@@ -108,7 +107,6 @@ class FavouriteController extends Controller
             $newBusiness = Business::find($favourite -> id_business);
             $newBusiness -> makeHidden([
                 'tax_id', 'is_validated', 'description', 'directions',
-                'id_breakfast_product', 'id_lunch_product', 'id_dinner_product',
                 'id_currency', 'id_country', 'longitude', 'latitude',
             ]);
             $newBusiness -> rate = Utils::getBusinessRate($newBusiness -> id);
@@ -116,10 +114,7 @@ class FavouriteController extends Controller
         }
         $results = new Collection();
         foreach($businesses as $business) {
-            $items = Item::where('id_product', $business -> id_breakfast_product)
-                    -> orWhere('id_product', $business -> id_lunch_product)
-                    -> orWhere('id_product', $business -> id_dinner_product)
-                    -> get();
+            $items = Utils::getItemsFromBusiness($business -> id);
             foreach($items as $item) {
                 if($item -> date == Carbon::today() -> startOfDay()
                     || $item -> date == Carbon::tomorrow() -> startOfDay()
@@ -138,7 +133,6 @@ class FavouriteController extends Controller
                     $business -> makeHidden([
                         'description', 'tax_id', 'is_validated',
                         'id_country', 'longitude', 'latitude', 'directions',
-                        'id_breakfast_product', 'id_lunch_product', 'id_dinner_product', 'distance',
                     ]);
                     $business -> rate = Utils::getBusinessRate($business -> id);
                     $owner = User::where('id_business', $business -> id) -> first();

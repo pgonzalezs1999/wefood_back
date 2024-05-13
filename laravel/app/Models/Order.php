@@ -18,8 +18,6 @@ class Order extends Model
         'reception_method',
         'id_payment',
         'amount',
-        'id_business',
-        'meal_type',
     ];
 
     protected $hidden = [

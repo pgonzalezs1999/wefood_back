@@ -64,11 +64,11 @@ class ImageController extends Controller
             $business = Business::find($user -> id_business);
             $product;
             if(strtolower($request -> input('meaning')[0]) == 'b') {
-                $product = Product::find($business -> id_breakfast_product);
+                $product = Product::where('id_business', $business -> id) -> where('product_type', 'b') -> first();
             } else if(strtolower($request -> input('meaning')[0]) == 'l') {
-                $product = Product::find($business -> id_lunch_product);
+                $product = Product::where('id_business', $business -> id) -> where('product_type', 'l') -> first();
             } else if(strtolower($request -> input('meaning')[0]) == 'd') {
-                $product = Product::find($business -> id_dinner_product);
+                $product = Product::where('id_business', $business -> id) -> where('product_type', 'd') -> first();
             }
             if($product != null) {
                 $image = Image::where('id_user', $request -> input('id_user')) -> where('meaning', $request -> input('meaning')) -> first();

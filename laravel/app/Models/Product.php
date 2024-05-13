@@ -27,6 +27,8 @@ class Product extends Model
         'working_on_sunday',
         'starting_hour',
         'ending_hour',
+        'product_type',
+        'id_business',
     ];
 
     protected $hidden = [

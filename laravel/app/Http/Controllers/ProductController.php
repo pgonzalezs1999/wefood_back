@@ -52,55 +52,39 @@ class ProductController extends Controller
                 'error' => $validator -> errors() -> toJson()
             ], 422);
         }
-        $product = Product::create([
-            'price' => $request -> input('price'),
-            'amount' => $request -> input('amount'),
-            'ending_date' => $request -> input('ending_date'),
-            'starting_hour' => $request -> input('starting_hour'),
-            'ending_hour' => $request -> input('ending_hour'),
-            'vegetarian' => $request -> input('vegetarian'),
-            'vegan' => $request -> input('vegan'),
-            'dessert' => $request -> input('dessert'),
-            'junk' => $request -> input('junk'),
-            'working_on_monday' => $request -> input('working_on_monday'),
-            'working_on_tuesday' => $request -> input('working_on_tuesday'),
-            'working_on_wednesday' => $request -> input('working_on_wednesday'),
-            'working_on_thursday' => $request -> input('working_on_thursday'),
-            'working_on_friday' => $request -> input('working_on_friday'),
-            'working_on_saturday' => $request -> input('working_on_saturday'),
-            'working_on_sunday' => $request -> input('working_on_sunday'),
-        ]);
         try {
-            if($request -> input('type') == 'B') {
-                $type = 'B';
-                if($request -> input('mw_business') -> id_breakfast_product != null) {
-                    return response() -> json([
-                        'error' => 'Breakfast already exists.'
-                    ], 422);
+            $product = Product::where('id_business', $request -> input('mw_business') -> id) -> where('product_type', strtolower($request -> input('type'))) -> first();
+            if($product != null) {
+                $name = 'Breakfast';
+                if($request -> input('type') == 'L') {
+                    $name = 'Lunch';
+                } else if($request -> input('type') == 'D') {
+                    $name = 'Dinner';
                 }
-                $request -> input('mw_business') -> id_breakfast_product = $product -> id;
-            } else if($request -> input('type') == 'L') {
-                $type = 'L';
-                if($request -> input('mw_business') -> id_lunch_product != null) {
-                    return response() -> json([
-                        'error' => 'Lunch already exists.'
-                    ], 422);
-                }
-                $request -> input('mw_business') -> id_lunch_product = $product -> id;
-            } else if($request -> input('type') == 'D') {
-                $type = 'D';
-                if($request -> input('mw_business') -> id_dinner_product != null) {
-                    return response() -> json([
-                        'error' => 'Dinner already exists.'
-                    ], 422);
-                }
-                $request -> input('mw_business') -> id_dinner_product = $product -> id;
-            } else {
                 return response() -> json([
-                    'error' => 'Invalid type.'
+                    'error' => $name . ' already exists.'
                 ], 422);
             }
-            $request -> input('mw_business') -> save();
+            $product = Product::create([
+                'price' => $request -> input('price'),
+                'amount' => $request -> input('amount'),
+                'ending_date' => $request -> input('ending_date'),
+                'starting_hour' => $request -> input('starting_hour'),
+                'ending_hour' => $request -> input('ending_hour'),
+                'vegetarian' => $request -> input('vegetarian'),
+                'vegan' => $request -> input('vegan'),
+                'dessert' => $request -> input('dessert'),
+                'junk' => $request -> input('junk'),
+                'working_on_monday' => $request -> input('working_on_monday'),
+                'working_on_tuesday' => $request -> input('working_on_tuesday'),
+                'working_on_wednesday' => $request -> input('working_on_wednesday'),
+                'working_on_thursday' => $request -> input('working_on_thursday'),
+                'working_on_friday' => $request -> input('working_on_friday'),
+                'working_on_saturday' => $request -> input('working_on_saturday'),
+                'working_on_sunday' => $request -> input('working_on_sunday'),
+                'product_type' => $request -> input('type'),
+                'id_business' => $request -> input('mw_business') -> id,
+            ]);
         } catch(\Exception $e) {
             $product -> forceDelete();
             print_r($e -> getMessage());
@@ -141,22 +125,10 @@ class ProductController extends Controller
                 'error' => $validator -> errors() -> toJson()
             ], 422);
         }
-        $chosenField = '';
-        if($request -> input('type') == 'B') {
-            $chosenField = 'id_breakfast_product';
-        } else if($request -> input('type') == 'L') {
-            $chosenField = 'id_lunch_product';
-        } else if($request -> input('type') == 'D') {
-            $chosenField = 'id_dinner_product';
-        } else {
-            return response() -> json([
-                'error' => 'Invalid type.'
-            ], 422);
-        }
-        $product = Product::find($request -> input('mw_business') -> $chosenField);
+        $product = Product::where('id_business', $request -> input('mw_business') -> id) ->  where('product_type', strtolower($request -> input('type'))) -> first();
         if($product == null) {
             return response() -> json([
-                'error' => 'No ' . $chosenField . ' found for this business.'
+                'error' => 'Product not found.'
             ], 404);
         }
         $items = Item::where('id_product', $product -> id) -> get();
@@ -223,10 +195,15 @@ class ProductController extends Controller
                 'error' => $validator -> errors() -> toJson()
             ], 422);
         }
-        if($request -> input('id') != $request -> input('mw_business') -> id_breakfast_product &&
-           $request -> input('id') != $request -> input('mw_business') -> id_lunch_product &&
-           $request -> input('id') != $request -> input('mw_business') -> id_dinner_product
-        ) {
+        $product = Product::find($request -> input('id'));
+        return response() -> json([
+            'error' => 'Product not found.',
+        ], 404);
+        $business = Business::find($product -> id_business);
+        return response() -> json([
+            'error' => 'Owner business not found.',
+        ], 404);
+        if($business -> id != $request -> input('mw_business') -> id) {
             return response() -> json([
                 'error' => 'This product does not belong to this business.'
             ], 422);
@@ -479,7 +456,6 @@ class ProductController extends Controller
             $product -> type = Utils::getProductType($business -> id, $product -> id);
             $business -> makeHidden([
                 'tax_id', 'id_country', 'is_validated',
-                'id_breakfast_product', 'id_lunch_product', 'id_dinner_product',
                 'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
                 'directions', 'longitude', 'latitude',
             ]);
@@ -562,7 +538,6 @@ class ProductController extends Controller
             $product -> type = Utils::getProductType($business -> id, $product -> id);
             $business -> makeHidden([
                 'tax_id', 'id_country', 'is_validated',
-                'id_breakfast_product', 'id_lunch_product', 'id_dinner_product',
                 'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
                 'directions', 'longitude', 'latitude',
             ]);

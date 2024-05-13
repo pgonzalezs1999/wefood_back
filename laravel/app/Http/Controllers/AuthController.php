@@ -80,7 +80,7 @@ class AuthController extends Controller
                 'error' => 'User is already an admin.',
             ], 400);
         }
-        if ($adminUser -> id_business != null) {
+        if($adminUser -> id_business != null) {
             return response()->json([
                 'error' => 'Users that own a business cannot be admin.',
             ], 400);
