@@ -20,10 +20,10 @@ class Business extends Model
         'latitude',
         'directions',
         'created_at',
+        'deleted_at',
     ];
 
     protected $hidden = [
         'updated_at',
-        'deleted_at',
     ];
 }

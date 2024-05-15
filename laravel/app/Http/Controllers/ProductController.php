@@ -444,7 +444,7 @@ class ProductController extends Controller
         foreach($items as $item) {
             $product = Product::find($item -> id_product);
             $product -> amount = Utils::getAvailableAmountOfItem($item, $product);
-            $business = Utils::findBusinessFromProduct($product -> id);
+            $business = Utils::findBusinessFromProduct($product);
             $user = User::where('id_business', $business -> id) -> first();
             $item -> makeHidden([
                 'id_product',
@@ -525,7 +525,7 @@ class ProductController extends Controller
         foreach($items as $item) {
             $product = Product::find($item -> id_product);
             $product -> amount = Utils::getAvailableAmountOfItem($item, $product);
-            $business = Utils::findBusinessFromProduct($product -> id);
+            $business = Utils::findBusinessFromProduct($product);
             $user = User::where('id_business', $business -> id) -> first();
             $item -> makeHidden([
                 'id_product',

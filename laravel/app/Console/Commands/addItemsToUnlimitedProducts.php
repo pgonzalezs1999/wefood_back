@@ -31,7 +31,7 @@ class addItemsToUnlimitedProducts extends Command
             Carbon::tomorrow() -> startOfDay()
         ];
         foreach($products as $product) {
-            $business = Utils::findBusinessFromProduct();
+            $business = Utils::findBusinessFromProduct($product);
             if($business == null) {
                 $product -> delete();
                 $items = Item::where('id_product', $product -> id) -> get();

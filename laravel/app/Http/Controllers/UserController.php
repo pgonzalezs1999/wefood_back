@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Collection;
 use Carbon\Carbon;
 use JWTAuth;
 use Auth;
@@ -13,6 +14,7 @@ use App\Models\Business;
 use App\Models\Product;
 use App\Models\Item;
 use App\Models\Order;
+use App\Models\Favourite;
 
 class UserController extends Controller
 {
@@ -73,32 +75,29 @@ class UserController extends Controller
 
     public function signout() {
         $user = auth() -> user();
-        
         $business = Business::find($user -> id_business);
         if($business != null) {
-            $products = [];
-            $breakfastProduct = Product::where('id_business', $business) -> where('product_type', 'b');
-            $lunchProduct = Product::where('id_business', $business) -> where('product_type', 'l');
-            $dinnerProduct = Product::where('id_business', $business) -> where('product_type', 'd');
+            $products = new Collection();
+            $breakfastProduct = Product::where('id_business', $business -> id) -> where('product_type', 'b');
+            $lunchProduct = Product::where('id_business', $business -> id) -> where('product_type', 'l');
+            $dinnerProduct = Product::where('id_business', $business -> id) -> where('product_type', 'd');
             if($breakfastProduct != null) {
-                $products[] = $breakfastProduct;
+                $products -> push($breakfastProduct);
             }
             if($lunchProduct != null) {
-                $products[] = $lunchProduct;
+                $products -> push($lunchProduct);
             }
             if($dinnerProduct != null) {
-                $products[] = $dinnerProduct;
+                $products -> push($dinnerProduct);
             }
             if(count($products) > 0) {
                 foreach($products as $product) {
-                    $items = Item::where('id_product', $product -> id) -> get();
-                    if(count($items) > 0) {
-                        foreach($items as $item) {
-                            $item -> delete();
-                        }
-                    }
                     $product -> delete();
                 }
+            }
+            $favourites = Favourite::where('id_business', $business -> id);
+            foreach($favourites as $favourite) {
+                $favourite -> delete();
             }
             $business -> delete();
         }

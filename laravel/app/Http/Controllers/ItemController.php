@@ -34,7 +34,7 @@ class ItemController extends Controller
         }
         $item = Item::find($id);
         $product = Product::find($item -> id_product);
-        $business = Utils::findBusinessFromProduct($product -> id);
+        $business = Utils::findBusinessFromProduct($product);
         $is_favourite = false;
         $is_favourite_ = Favourite::where('id_business', $business -> id)
             -> where('id_user', Auth::user() -> id) -> first();

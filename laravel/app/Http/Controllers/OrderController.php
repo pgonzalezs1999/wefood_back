@@ -154,25 +154,26 @@ class OrderController extends Controller
         $user = Auth::user();
         $orders = Order::where('id_user', $user -> id) -> get();
         foreach($orders as $order) {
-            $item = Item::find($order -> id_item);
+            $item = Item::withTrashed() -> find($order -> id_item);
             if($item != null) {
-                $product = Product::find($item -> id_product);
+                $product = Product::withTrashed() -> find($item -> id_product);
                 if($product != null) {
-                    $business = Business::find($product -> id_business);
+                    $business = Business::withTrashed() -> find($product -> id_business);
                     if($business != null) {
                         $business -> makeHidden([
                             'description', 'tax_id', 'is_validated',
                             'id_currency', 'id_country',
                             'directions', 'longitude', 'latitude',
+                            'created_at',
                         ]);
                         $product -> makeHidden([
-                            'description', 'ending_date',
+                            'id', 'id_business', 'description', 'ending_date',
                             'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
                             'vegetarian', 'vegan', 'dessert', 'junk',
                             'starting_hour', 'ending_hour', 'amount',
                         ]);
                         $order -> makeHidden([
-                            'id_user', 'id_item', 'id_payment',
+                            'id', 'id_user', 'id_item', 'id_payment', 'reception_method', 'reception_date',
                         ]);
                         $result = [
                             'business' => $business,
@@ -185,7 +186,7 @@ class OrderController extends Controller
             }
         }
         return response() -> json([
-            'results' => $results,
+            'orders' => $results,
         ], 200);
     }
 

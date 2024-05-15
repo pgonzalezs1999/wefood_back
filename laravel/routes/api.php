@@ -38,7 +38,7 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function($router) {
     Route::post('/addAdmin', [AuthController::class, 'addAdmin']) -> middleware('admin');
     Route::post('/removeAdmin', [AuthController::class, 'removeAdmin']) -> middleware('admin');
     
-    Route::post('/createBusiness', [BusinessController::class, 'createBusiness']); // business' user signin
+    Route::post('/createBusiness', [BusinessController::class, 'createBusiness']); // business signin
     Route::get('/getSessionBusiness', [BusinessController::class, 'getSessionBusiness']) -> middleware('business');
     Route::post('/getBusiness', [BusinessController::class, 'getBusiness']);
     Route::get('/getAllBusinesses', [BusinessController::class, 'getAllBusinesses']);
@@ -79,7 +79,6 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function($router) {
     
     Route::post('/addFavourite', [FavouriteController::class, 'addFavourite']);
     Route::post('/removeFavourite', [FavouriteController::class, 'removeFavourite']);
-    Route::get('/getSessionFavourites', [FavouriteController::class, 'getSessionFavourites']);
     Route::get('/getFavouriteItems', [FavouriteController::class, 'getFavouriteItems']);
     
     Route::post('/addComment', [CommentController::class, 'addComment']);

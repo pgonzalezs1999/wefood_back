@@ -82,35 +82,20 @@ class FavouriteController extends Controller
         ], 200);
     }
 
-    public function getSessionFavourites() {
-        $user = Auth::user();
-        $favourites = Favourite::where('id_user', $user -> id) -> get();
-        $businesses = Array();
-        foreach($favourites as $favourite) {
-            $newBusiness = Business::find($favourite -> id_business);
-            $newBusiness -> makeHidden([
-                'tax_id', 'is_validated',
-                'id_currency', 'id_country', 'longitude', 'latitude',
-            ]);
-            $businesses = array_merge($businesses, Array($newBusiness));
-        }
-        return response() -> json([
-            'favourites' => $businesses,
-        ], 201);
-    }
-
     public function getFavouriteItems() {
         $user = Auth::user();
         $favourites = Favourite::where('id_user', $user -> id) -> get();
         $businesses = new Collection();
         foreach($favourites as $favourite) {
             $newBusiness = Business::find($favourite -> id_business);
-            $newBusiness -> makeHidden([
-                'tax_id', 'is_validated', 'description', 'directions',
-                'id_currency', 'id_country', 'longitude', 'latitude',
-            ]);
-            $newBusiness -> rate = Utils::getBusinessRate($newBusiness -> id);
-            $businesses = $businesses -> push($newBusiness);
+            if($newBusiness != null) { // double check just in case business signout didn't delete favs properly
+                $newBusiness -> makeHidden([
+                    'tax_id', 'is_validated', 'description', 'directions',
+                    'id_currency', 'id_country', 'longitude', 'latitude',
+                ]);
+                $newBusiness -> rate = Utils::getBusinessRate($newBusiness -> id);
+                $businesses = $businesses -> push($newBusiness);
+            }
         }
         $results = new Collection();
         foreach($businesses as $business) {

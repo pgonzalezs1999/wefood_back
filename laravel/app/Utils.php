@@ -160,8 +160,7 @@ class Utils {
         return $businesses;
     }
 
-    public static function findBusinessFromProduct(int $id_product) {
-        $product = Product::find($id_product);
+    public static function findBusinessFromProduct($product) {
         $business = Business::find($product -> id_business);
         return $business;
     }
