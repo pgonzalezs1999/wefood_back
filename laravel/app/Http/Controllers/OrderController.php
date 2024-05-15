@@ -160,6 +160,11 @@ class OrderController extends Controller
                 if($product != null) {
                     $business = Business::withTrashed() -> find($product -> id_business);
                     if($business != null) {
+                        $owner = User::withTrashed() -> where('id_business', $business -> id) -> first();
+                        $owner -> makeHidden([
+                            'id_business', 'real_name', 'real_surname', 'username', 'email', 'phone', 'phone_prefix', 'sex',
+                            'last_login_date', 'last_latitude', 'last_longitude', 'is_admin', 'email_verified',
+                        ]);
                         $business -> makeHidden([
                             'description', 'tax_id', 'is_validated',
                             'id_currency', 'id_country',
@@ -176,6 +181,7 @@ class OrderController extends Controller
                             'id', 'id_user', 'id_item', 'id_payment', 'reception_method', 'reception_date',
                         ]);
                         $result = [
+                            'user' => $owner,
                             'business' => $business,
                             'product' => $product,
                             'order' => $order,

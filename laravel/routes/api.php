@@ -83,6 +83,7 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function($router) {
     
     Route::post('/addComment', [CommentController::class, 'addComment']);
     Route::post('/deleteComment', [CommentController::class, 'deleteComment']);
+    Route::post('/getCommentsFromBusiness', [CommentController::class, 'getCommentsFromBusiness']);
     
     Route::get('/getAllCountries', [CountryController::class, 'getAllCountries']);
 

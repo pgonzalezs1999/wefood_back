@@ -153,27 +153,49 @@ class BusinessController extends Controller
                 'error' => $validator -> errors() -> toJson()
             ], 422);
         }
+        $user = Auth::User();
         $business = Business::find($request -> input('id_business'));
         $business -> makeHidden([
             'longitude', 'latitude', 'is_validated',
             'tax_id', 'id_country',
         ]);
-        $breakfast = Product::where('id_business', $business -> id) -> where('product_type', 'b') -> first();
-        $lunch = Product::where('id_business', $business -> id) -> where('product_type', 'l') -> first();
-        $dinner = Product::where('id_business', $business -> id) -> where('product_type', 'd') -> first();
+        $owner = User::where('id_business', $business -> id) -> first();
+        $owner -> makeHidden([
+            'id_business', 'real_name', 'real_surname', 'username', 'email', 'phone', 'phone_prefix', 'sex',
+            'last_login_date', 'last_latitude', 'last_longitude', 'is_admin', 'email_verified',
+        ]);
         $favourites = Favourite::where('id_business', $request -> input('id_business')) -> count();
+        $is_favourite = Favourite::where('id_business', $request -> input('id_business')) -> where('id_user', $user -> id) -> count();
         $comments = Comment::where('id_business', $request -> input('id_business')) -> get();
-        $products = [ Product::where('id_business', $business -> id) -> get() -> pluck('id') ];
+        $parsed_comments = new Collection();
+        if(count($comments) > 0) {
+            foreach($comments as $comment) {
+                $comment_user = User::find($comment -> id_user);
+                $comment -> makeHidden([
+                    'id', 'id_user',
+                ]);
+                $comment_user -> makeHidden([
+                    'real_name', 'real_surname', 'phone', 'phone_prefix', 'sex',
+                    'is_admin', 'id_business', 'email_verified',
+                    'last_login_date', 'last_longitude', 'last_latitude',
+                ]);
+                $parsed_comments -> push([
+                    'content' => $comment,
+                    'user' => $comment_user,
+                ]);
+            }
+        }
+        $business -> comments = $parsed_comments;
+        $products = Product::where('id_business', $business -> id) -> get() -> pluck('id');
         $items = Item::whereIn('id_product', $products) -> get() -> pluck('id');
         $totalOrders = Order::whereIn('id_item', $items) -> get() -> count();
+        $business -> rate = (float) Utils::getBusinessRate($business -> id);
         return response() -> json([
             'business' => $business,
-            'breakfast' => $breakfast,
-            'lunch' => $lunch,
-            'dinner' => $dinner,
+            'user' => $owner,
             'favourites' => $favourites,
-            'comments' => $comments,
-            'totalOrders' => $totalOrders,
+            'is_favourite' => ($is_favourite > 0),
+            'total_orders' => $totalOrders,
         ], 200);
     }
 

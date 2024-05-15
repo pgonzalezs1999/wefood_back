@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Collection;
 use Validator;
 use Auth;
+use App\Models\User;
 use App\Models\Comment;
 use App\Models\Product;
 
@@ -19,24 +21,18 @@ class CommentController extends Controller
 
     public function addComment(Request $request) {
         $validator = Validator::make($request -> all(), [
-            'id_product' => 'required|integer|exists:products,id',
+            'id_business' => 'required|integer|exists:businesses,id',
             'message' => 'nullable|string|max:500',
-            'rate' => 'required|integer|min:1|max:5',
+            'rate' => 'required|numeric|min:0.5|max:5',
         ]);
         if($validator -> fails()) {
             return response() -> json([
                 'error' => $validator -> errors() -> toJson()
             ], 422);
         }
-        $product = Product::find($request -> input('id_product'));
-        if($product == null) {
-            return response() -> json([
-                'error' => 'Product not found.'
-            ], 404);
-        }
         $user = Auth::user();
         $comment = Comment::where('id_user', $user -> id)
-                -> where('id_product', $request -> input('id_product')) 
+                -> where('id_business', $request -> input('id_business'))
                 -> first();
         if($comment != null) {
             return response() -> json([
@@ -45,7 +41,7 @@ class CommentController extends Controller
         }
         $comment = Comment::create([
             'id_user' => $user -> id,
-            'id_product' => $request -> input('id_product'),
+            'id_business' => $request -> input('id_business'),
             'message' => $request -> input('message'),
             'rate' => $request -> input('rate'),
         ]);
@@ -57,7 +53,7 @@ class CommentController extends Controller
 
     public function deleteComment(Request $request) {
         $validator = Validator::make($request -> all(), [
-            'id_product' => 'required|integer|exists:products,id'
+            'id_business' => 'required|integer|exists:businesses,id'
         ]);
         if($validator -> fails()) {
             return response() -> json([
@@ -66,7 +62,7 @@ class CommentController extends Controller
         }
         $user = Auth::user();
         $comment = Comment::where('id_user', $user -> id)
-                -> where('id_product', $request -> input('id_product')) 
+                -> where('id_business', $request -> input('id_business')) 
                 -> first();
         if($comment == null) {
             return response() -> json([
@@ -76,6 +72,36 @@ class CommentController extends Controller
         $comment -> delete();
         return response() -> json([
             'message' => 'Comment removed successfully.',
+        ], 200);
+    }
+
+    public function getCommentsFromBusiness(Request $request) {
+        $validator = Validator::make($request -> all(), [
+            'id_business' => 'required|integer|exists:businesses,id',
+        ]);
+        if($validator -> fails()) {
+            return response() -> json([
+                'error' => $validator -> errors() -> toJson()
+            ], 422);
+        }
+        $comments = Comment::where('id_business', $request -> input('id_business')) -> get();
+        $results = new Collection();
+        if(count($comments) > 0) {
+            foreach($comments as $comment) {
+                $user = User::find($comment -> id_user);
+                $user -> makeHidden([
+                    'real_name', 'real_surname', 'phone', 'phone_prefix', 'sex',
+                    'is_admin', 'id_business', 'email_verified',
+                    'last_login_date', 'last_longitude', 'last_latitude',
+                ]);
+                $results -> push([
+                    'content' => $comment,
+                    'user' => $user,
+                ]);
+            }
+        }
+        return response() -> json([
+            'comments' => $results,
         ], 200);
     }
 }
