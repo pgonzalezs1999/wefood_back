@@ -35,9 +35,14 @@ class ItemController extends Controller
         $item = Item::find($id);
         $product = Product::find($item -> id_product);
         $business = Utils::findBusinessFromProduct($product);
+        $owner = User::where('id_business', $business -> id) -> first();
+        $owner -> makeHidden([
+            'username', 'email', 'real_name', 'real_surname', 'sex',
+            'is_admin', 'id_business', 'email_verified',
+            'last_login_date', 'last_longitude', 'last_latitude',
+        ]);
         $is_favourite = false;
-        $is_favourite_ = Favourite::where('id_business', $business -> id)
-            -> where('id_user', Auth::user() -> id) -> first();
+        $is_favourite_ = Favourite::where('id_business', $business -> id) -> where('id_user', Auth::user() -> id) -> first();
         if($is_favourite_ != null) {
             $is_favourite = true;
         }
@@ -74,6 +79,7 @@ class ItemController extends Controller
             'item' => $item,
             'product' => $product,
             'business' => $business,
+            'user' => $owner,
             'available' => $available,
             'is_favourite' => $is_favourite,
         ], 200);
