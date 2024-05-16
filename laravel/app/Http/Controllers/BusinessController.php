@@ -23,6 +23,7 @@ use App\Models\AcceptedCurrency;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\Item;
+use App\Models\Image;
 
 class BusinessController extends Controller
 {
@@ -179,9 +180,16 @@ class BusinessController extends Controller
                     'is_admin', 'id_business', 'email_verified',
                     'last_login_date', 'last_longitude', 'last_latitude',
                 ]);
+                $image = Image::where('id_user', $comment_user -> id) -> where('meaning', 'profile') -> first();
+                if($image != null) {
+                    $image -> makeHidden([
+                        'id_user', 'meaning',
+                    ]);
+                }
                 $parsed_comments -> push([
                     'content' => $comment,
                     'user' => $comment_user,
+                    'image' => $image,
                 ]);
             }
         }

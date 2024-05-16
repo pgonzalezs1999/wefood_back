@@ -10,6 +10,7 @@ use Auth;
 use App\Models\User;
 use App\Models\Comment;
 use App\Models\Product;
+use App\Models\Image;
 
 class CommentController extends Controller
 {
@@ -94,9 +95,16 @@ class CommentController extends Controller
                     'is_admin', 'id_business', 'email_verified',
                     'last_login_date', 'last_longitude', 'last_latitude',
                 ]);
+                $image = Image::where('id_user', $user -> id) -> where('meaning', 'profile') -> first();
+                if($image != null) {
+                    $image -> makeHidden([
+                        'id_user', 'meaning',
+                    ]);
+                }
                 $results -> push([
                     'content' => $comment,
                     'user' => $user,
+                    'image' => $image,
                 ]);
             }
         }

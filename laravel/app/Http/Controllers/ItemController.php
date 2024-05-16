@@ -14,6 +14,7 @@ use App\Models\Product;
 use App\Models\Item;
 use App\Models\Favourite;
 use App\Models\Comment;
+use App\Models\Image;
 
 class ItemController extends Controller
 {
@@ -55,6 +56,12 @@ class ItemController extends Controller
         $comments_expanded = new Collection();
         foreach($comments as $comment) {
             $user = User::find($comment -> id_user);
+            $image = Image::where('id_user', $user -> id) -> where('meaning', 'profile') -> first();
+            if($image != null) {
+                $image -> makeHidden([
+                    'id_user', 'meaning',
+                ]);
+            }
             $product -> makeHidden([
                 'description',
             ]);
@@ -72,6 +79,7 @@ class ItemController extends Controller
             $comments_expanded -> push([
                 'content' => $comment,
                 'user' => $user,
+                'image' => $image,
             ]);
             $business -> comments = $comments_expanded;
         }
@@ -128,11 +136,18 @@ class ItemController extends Controller
                             'real_name', 'real_surname', 'username', 'email', 'phone', 'phone_prefix', 'sex',
                             'last_latitude', 'last_longitude', 'last_login_date', 'email_verified', 'is_admin',
                         ]);
+                        $image = Image::where('id_user', $owner -> id) -> where('meaning', $product -> product_type . '1') -> first();
+                        if($image != null) {
+                            $image -> makeHidden([
+                                'id_user',
+                            ]);
+                        }
                         $results = $results -> push([
                             'product' => $product,
                             'business' => $business,
                             'user' => $owner,
                             'item' => $item,
+                            'image' => $image,
                         ]);
                     }
                 }
@@ -189,11 +204,18 @@ class ItemController extends Controller
                             'real_name', 'real_surname', 'username', 'email', 'phone', 'phone_prefix', 'sex',
                             'last_latitude', 'last_longitude', 'last_login_date', 'email_verified', 'is_admin',
                         ]);
+                        $image = Image::where('id_user', $owner -> id) -> where('meaning', $product -> product_type . '1') -> first();
+                        if($image != null) {
+                            $image -> makeHidden([
+                                'id_user',
+                            ]);
+                        }
                         $results = array_merge($results, [[
                             'product' => $product,
                             'business' => $business,
                             'user' => $owner,
                             'item' => $item,
+                            'image' => $image,
                         ]]);
                     }
                 }

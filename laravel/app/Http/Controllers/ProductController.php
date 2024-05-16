@@ -463,11 +463,18 @@ class ProductController extends Controller
                 'last_latitude', 'last_longitude', 'last_login_date',
                 'id_business', 'email_verified', 'is_admin',
             ]);
+            $image = Image::where('id_user', $user -> id) -> where('meaning', $product -> product_type . '1') -> first();
+            if($image != null) {
+                $image -> makeHidden([
+                    'id_user',
+                ]);
+            }
             $results -> push([
                 'item' => $item,
                 'product' => $product,
                 'business' => $business,
                 'user' => $user,
+                'image' => $image,
             ]);
         }
         return response() -> json([
@@ -544,11 +551,18 @@ class ProductController extends Controller
                 'last_latitude', 'last_longitude', 'last_login_date',
                 'id_business', 'email_verified', 'is_admin',
             ]);
+            $image = Image::where('id_user', $user -> id) -> where('meaning', $product -> product_type . '1') -> first();
+            if($image != null) {
+                $image -> makeHidden([
+                    'id_user',
+                ]);
+            }
             $results -> push([
                 'item' => $item,
                 'product' => $product,
                 'business' => $business,
                 'user' => $user,
+                'image' => $image,
             ]);
         }
         return response() -> json([
