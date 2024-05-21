@@ -15,7 +15,7 @@ return new class extends Migration
             $table->integer('amount');
             $table->dateTime('ending_date')->nullable();
             $table->boolean('vegetarian')->nullable();
-            $table->boolean('vegan')->nullable();
+            $table->boolean('mediterranean')->nullable();
             $table->boolean('dessert')->nullable();
             $table->boolean('junk')->nullable();
             $table->boolean('workingOnMonday')->nullable();

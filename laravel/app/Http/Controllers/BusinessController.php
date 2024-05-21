@@ -42,7 +42,7 @@ class BusinessController extends Controller
         $validator = Validator::make($request -> all(), [
             // Create linked user
             'email' => 'required|string|email|min:6|max:255|unique:users',
-            'password' => 'required|string|min:6|max:20',
+            'password' => 'required|string|min:6|max:15',
             'phone_prefix' => 'required|integer',
             'phone' => 'required|integer|unique:users',
             // Create business
@@ -59,6 +59,7 @@ class BusinessController extends Controller
                 'error' => $validator -> errors() -> toJson()
             ], 422);
         }
+        
         $country = Country::where('google_maps_name', $request -> input('country')) -> first();
         if($country == null) {
             return [

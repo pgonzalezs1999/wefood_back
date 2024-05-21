@@ -15,7 +15,7 @@ class Product extends Model
         'amount',
         'ending_date',
         'vegetarian',
-        'vegan',
+        'mediterranean',
         'dessert',
         'junk',
         'working_on_monday',
