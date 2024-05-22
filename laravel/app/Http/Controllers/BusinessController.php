@@ -562,10 +562,20 @@ class BusinessController extends Controller
         $businesses = Business::where('is_validated', 0) -> get();
         $result = new Collection();
         foreach($businesses as $business) {
-            $result = $result -> push([
-                'business' => $business,
-                'user' => User::where('id_business') -> first(),
-            ]);
+            $user = User::where('id_business', $business -> id) -> first();
+            if($user != null) {
+                $user = $user -> makeHidden(
+                    'id_business', 'real_name', 'real_surname', 'sex', 'is_admin',
+                    'last_login_date', 'last_longitude', 'last_latitude',
+                );
+                $business = $business -> makeHidden(
+                    'id_country', 'is_validated', 'deleted_at',
+                );
+                $result = $result -> push([
+                    'user' => $user,
+                    'business' => $business,
+                ]);
+            }
         }
         return response() -> json([
             'results' => $result,
