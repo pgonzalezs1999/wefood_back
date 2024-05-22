@@ -244,12 +244,6 @@ class OrderController extends Controller
                 'error' => 'Order already completed.'
             ], 422);
         }
-        $item = Item::find($order -> id_item);
-        if($item -> date < Carbon::today() -> startOfDay()) {
-            return response() -> json([
-                'error' => 'Order not available anymore.'
-            ], 422);
-        }
         $order -> reception_date = Carbon::now();
         $order -> reception_method = 'PM'; // picked up manually
         $order -> save();

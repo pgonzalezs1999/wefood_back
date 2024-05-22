@@ -169,6 +169,7 @@ class BusinessController extends Controller
         $favourites = Favourite::where('id_business', $request -> input('id_business')) -> count();
         $is_favourite = Favourite::where('id_business', $request -> input('id_business')) -> where('id_user', $user -> id) -> count();
         $comments = Comment::where('id_business', $request -> input('id_business')) -> get();
+        $requester_has_bought = Utils::userHasBoughtInBusiness($user, $business);
         $parsed_comments = new Collection();
         if(count($comments) > 0) {
             foreach($comments as $comment) {
@@ -205,6 +206,7 @@ class BusinessController extends Controller
             'favourites' => $favourites,
             'is_favourite' => ($is_favourite > 0),
             'total_orders' => $totalOrders,
+            'requester_has_bought' => $requester_has_bought,
         ], 200);
     }
 

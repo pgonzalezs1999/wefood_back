@@ -178,6 +178,12 @@ class Utils {
         return $rate;
     }
 
+    public static function userHasBoughtInBusiness(User $user, Business $business) {
+        $distinctItems = Order::where('id_user', $user -> id) -> distinct() -> pluck('id_item');
+        $hasBought = Order::where('id_user', $user -> id) -> whereIn('id_item', $distinctItems) -> exists();
+        return $hasBought;
+    }
+
     public static function cleanText(string $text) {
         $cleaned_text = strtolower($text);
         $cleaned_text = str_replace('á', 'a', $cleaned_text);

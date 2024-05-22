@@ -33,7 +33,7 @@ class ItemController extends Controller
                 'error' => $validator -> errors() -> toJson()
             ], 422);
         }
-        $item = Item::find($id);
+        $item = Item::withTrashed() -> find($id);
         $product = Product::find($item -> id_product);
         $business = Utils::findBusinessFromProduct($product);
         $owner = User::where('id_business', $business -> id) -> first();
