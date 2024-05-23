@@ -111,36 +111,38 @@ class FavouriteController extends Controller
                                     -> where('id_user', $user -> id) -> first();
                             $is_favourite = ($favourite != null);
                             $product = Product::find($item -> id_product);
-                            $product -> amount = Utils::getAvailableAmountOfItem($item, $product);
-                            $product -> makeHidden([
-                                'description', 'ending_date',
-                                'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
-                            ]);
-                            $product -> favourite = $is_favourite;
-                            $business -> makeHidden([
-                                'description', 'tax_id', 'is_validated',
-                                'id_country', 'longitude', 'latitude', 'directions',
-                            ]);
-                            $business -> rate = Utils::getBusinessRate($business -> id);
-                            $owner = User::where('id_business', $business -> id) -> first();
-                            $owner -> makeHidden([
-                                'real_name', 'real_surname', 'username', 'email', 'phone', 'phone_prefix', 'sex',
-                                'last_latitude', 'last_longitude', 'last_login_date', 'email_verified', 'is_admin',
-                            ]);
-                            $image = Image::where('id_user', $owner -> id) -> where('meaning', $product -> product_type . '1') -> first();
-                            if($image != null) {
-                                $image -> makeHidden([
-                                    'id_user',
+                            if(($item -> date == Carbon::today() -> startOfDay() && Carbon::parse($product -> ending_hour) -> isPast()) == false) {
+                                $product -> amount = Utils::getAvailableAmountOfItem($item, $product);
+                                $product -> makeHidden([
+                                    'description', 'ending_date',
+                                    'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
+                                ]);
+                                $product -> favourite = $is_favourite;
+                                $business -> makeHidden([
+                                    'description', 'tax_id', 'is_validated',
+                                    'id_country', 'longitude', 'latitude', 'directions',
+                                ]);
+                                $business -> rate = Utils::getBusinessRate($business -> id);
+                                $owner = User::where('id_business', $business -> id) -> first();
+                                $owner -> makeHidden([
+                                    'real_name', 'real_surname', 'username', 'email', 'phone', 'phone_prefix', 'sex',
+                                    'last_latitude', 'last_longitude', 'last_login_date', 'email_verified', 'is_admin',
+                                ]);
+                                $image = Image::where('id_user', $owner -> id) -> where('meaning', $product -> product_type . '1') -> first();
+                                if($image != null) {
+                                    $image -> makeHidden([
+                                        'id_user',
+                                    ]);
+                                }
+                                $results = $results -> push([
+                                    'product' => $product,
+                                    'business' => $business,
+                                    'user' => $owner,
+                                    'item' => $item,
+                                    'is_favourite' => $is_favourite,
+                                    'image' => $image,
                                 ]);
                             }
-                            $results = $results -> push([
-                                'product' => $product,
-                                'business' => $business,
-                                'user' => $owner,
-                                'item' => $item,
-                                'is_favourite' => $is_favourite,
-                                'image' => $image,
-                            ]);
                         }
                     }
                 }

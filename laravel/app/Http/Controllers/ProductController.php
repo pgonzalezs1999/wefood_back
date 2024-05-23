@@ -443,39 +443,41 @@ class ProductController extends Controller
         $results = new Collection();
         foreach($items as $item) {
             $product = Product::find($item -> id_product);
-            $product -> amount = Utils::getAvailableAmountOfItem($item, $product);
-            $business = Utils::findBusinessFromProduct($product);
-            $user = User::where('id_business', $business -> id) -> first();
-            $item -> makeHidden([
-                'id_product',
-            ]);
-            $product -> makeHidden([
-                'ending_date',
-                'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
-            ]);
-            $business -> makeHidden([
-                'tax_id', 'id_country', 'is_validated',
-                'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
-                'directions', 'longitude', 'latitude',
-            ]);
-            $user -> makeHidden([
-                'real_name', 'real_surname', 'username', 'email', 'phone', 'phone_prefix', 'sex',
-                'last_latitude', 'last_longitude', 'last_login_date',
-                'id_business', 'email_verified', 'is_admin',
-            ]);
-            $image = Image::where('id_user', $user -> id) -> where('meaning', $product -> product_type . '1') -> first();
-            if($image != null) {
-                $image -> makeHidden([
-                    'id_user',
+            if(($item -> date == Carbon::today() -> startOfDay() && Carbon::parse($product -> ending_hour) -> isPast()) == false) {
+                $product -> amount = Utils::getAvailableAmountOfItem($item, $product);
+                $business = Utils::findBusinessFromProduct($product);
+                $user = User::where('id_business', $business -> id) -> first();
+                $item -> makeHidden([
+                    'id_product',
+                ]);
+                $product -> makeHidden([
+                    'ending_date',
+                    'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
+                ]);
+                $business -> makeHidden([
+                    'tax_id', 'id_country', 'is_validated',
+                    'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
+                    'directions', 'longitude', 'latitude',
+                ]);
+                $user -> makeHidden([
+                    'real_name', 'real_surname', 'username', 'email', 'phone', 'phone_prefix', 'sex',
+                    'last_latitude', 'last_longitude', 'last_login_date',
+                    'id_business', 'email_verified', 'is_admin',
+                ]);
+                $image = Image::where('id_user', $user -> id) -> where('meaning', $product -> product_type . '1') -> first();
+                if($image != null) {
+                    $image -> makeHidden([
+                        'id_user',
+                    ]);
+                }
+                $results -> push([
+                    'item' => $item,
+                    'product' => $product,
+                    'business' => $business,
+                    'user' => $user,
+                    'image' => $image,
                 ]);
             }
-            $results -> push([
-                'item' => $item,
-                'product' => $product,
-                'business' => $business,
-                'user' => $user,
-                'image' => $image,
-            ]);
         }
         return response() -> json([
             'items' => $results,
@@ -531,39 +533,41 @@ class ProductController extends Controller
         $results = new Collection();
         foreach($items as $item) {
             $product = Product::find($item -> id_product);
-            $product -> amount = Utils::getAvailableAmountOfItem($item, $product);
-            $business = Utils::findBusinessFromProduct($product);
-            $user = User::where('id_business', $business -> id) -> first();
-            $item -> makeHidden([
-                'id_product',
-            ]);
-            $product -> makeHidden([
-                'ending_date',
-                'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
-            ]);
-            $business -> makeHidden([
-                'tax_id', 'id_country', 'is_validated',
-                'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
-                'directions', 'longitude', 'latitude',
-            ]);
-            $user -> makeHidden([
-                'real_name', 'real_surname', 'username', 'email', 'phone', 'phone_prefix', 'sex',
-                'last_latitude', 'last_longitude', 'last_login_date',
-                'id_business', 'email_verified', 'is_admin',
-            ]);
-            $image = Image::where('id_user', $user -> id) -> where('meaning', $product -> product_type . '1') -> first();
-            if($image != null) {
-                $image -> makeHidden([
-                    'id_user',
+            if(($item -> date == Carbon::today() -> startOfDay() && Carbon::parse($product -> ending_hour) -> isPast()) == false) {
+                $product -> amount = Utils::getAvailableAmountOfItem($item, $product);
+                $business = Utils::findBusinessFromProduct($product);
+                $user = User::where('id_business', $business -> id) -> first();
+                $item -> makeHidden([
+                    'id_product',
+                ]);
+                $product -> makeHidden([
+                    'ending_date',
+                    'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
+                ]);
+                $business -> makeHidden([
+                    'tax_id', 'id_country', 'is_validated',
+                    'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
+                    'directions', 'longitude', 'latitude',
+                ]);
+                $user -> makeHidden([
+                    'real_name', 'real_surname', 'username', 'email', 'phone', 'phone_prefix', 'sex',
+                    'last_latitude', 'last_longitude', 'last_login_date',
+                    'id_business', 'email_verified', 'is_admin',
+                ]);
+                $image = Image::where('id_user', $user -> id) -> where('meaning', $product -> product_type . '1') -> first();
+                if($image != null) {
+                    $image -> makeHidden([
+                        'id_user',
+                    ]);
+                }
+                $results -> push([
+                    'item' => $item,
+                    'product' => $product,
+                    'business' => $business,
+                    'user' => $user,
+                    'image' => $image,
                 ]);
             }
-            $results -> push([
-                'item' => $item,
-                'product' => $product,
-                'business' => $business,
-                'user' => $user,
-                'image' => $image,
-            ]);
         }
         return response() -> json([
             'items' => $results -> reverse() -> values(),
