@@ -23,7 +23,7 @@ class CommentController extends Controller
     public function addComment(Request $request) {
         $validator = Validator::make($request -> all(), [
             'id_business' => 'required|integer|exists:businesses,id',
-            'message' => 'nullable|string|max:500',
+            'message' => 'nullable|string|max:750',
             'rate' => 'required|numeric|min:0.5|max:5',
         ]);
         if($validator -> fails()) {

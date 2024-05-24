@@ -166,6 +166,7 @@ class BusinessController extends Controller
             'id_business', 'real_name', 'real_surname', 'username', 'email', 'phone', 'phone_prefix', 'sex',
             'last_login_date', 'last_latitude', 'last_longitude', 'is_admin', 'email_verified',
         ]);
+        $image = Image::where('id_user', $owner -> id) -> first();
         $favourites = Favourite::where('id_business', $request -> input('id_business')) -> count();
         $is_favourite = Favourite::where('id_business', $request -> input('id_business')) -> where('id_user', $user -> id) -> count();
         $comments = Comment::where('id_business', $request -> input('id_business')) -> get();
@@ -201,8 +202,9 @@ class BusinessController extends Controller
         $totalOrders = Order::whereIn('id_item', $items) -> get() -> count();
         $business -> rate = (float) Utils::getBusinessRate($business -> id);
         return response() -> json([
-            'business' => $business,
             'user' => $owner,
+            'business' => $business,
+            'image' => $image,
             'favourites' => $favourites,
             'is_favourite' => ($is_favourite > 0),
             'total_orders' => $totalOrders,
