@@ -152,6 +152,7 @@ class OrderController extends Controller
 
     public function getOrderHistoryCustomer() {
         $user = Auth::user();
+        $results = new Collection();
         $orders = Order::where('id_user', $user -> id) -> get();
         foreach($orders as $order) {
             $item = Item::withTrashed() -> find($order -> id_item);
@@ -180,13 +181,12 @@ class OrderController extends Controller
                         $order -> makeHidden([
                             'id', 'id_user', 'id_item', 'id_payment', 'reception_method', 'reception_date',
                         ]);
-                        $result = [
+                        $results -> push([
                             'user' => $owner,
                             'business' => $business,
                             'product' => $product,
                             'order' => $order,
-                        ];
-                        $results[] = $result;
+                        ]);
                     }
                 }
             }

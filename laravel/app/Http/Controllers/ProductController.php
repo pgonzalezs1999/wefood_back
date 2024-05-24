@@ -30,6 +30,7 @@ class ProductController extends Controller
     public function createProduct(Request $request) {
         $validator = Validator::make($request -> all(), [
             'price' => 'required|numeric|min:5',
+            'original_price' => 'required|numeric|min:5.1',
             'amount' => 'required|integer|min:1',
             'ending_date' => 'nullable|date_format:Y-m-d H:i:s',
             'starting_hour' => 'required|date_format:H:i',
@@ -67,6 +68,7 @@ class ProductController extends Controller
             }
             $product = Product::create([
                 'price' => $request -> input('price'),
+                'original_price' => $request -> input('original_price'),
                 'amount' => $request -> input('amount'),
                 'ending_date' => $request -> input('ending_date'),
                 'starting_hour' => $request -> input('starting_hour'),
@@ -163,7 +165,8 @@ class ProductController extends Controller
     public function updateProduct(Request $request) {
         $validator = Validator::make($request -> all(), [
             'id' => 'required|integer|exists:products,id',
-            'price' => 'required|numeric|min:0.1',
+            'price' => 'required|numeric|min:5',
+            'original_price' => 'required|numeric|min:5.1',
             'amount' => 'required|integer|min:1',
             'ending_date' => [
                 'nullable',
@@ -233,6 +236,7 @@ class ProductController extends Controller
         $shouldDeleteTommorrow = ($product -> {$tomorrowField} == true && $request -> input($tomorrowField) == false);
 
         $product -> price = $request -> input('price');
+        $product -> original_price = $request -> input('original_price');
         $product -> amount = $request -> input('amount');
         $product -> ending_date = $request -> input('ending_date');
         $product -> starting_hour = $request -> input('starting_hour');
