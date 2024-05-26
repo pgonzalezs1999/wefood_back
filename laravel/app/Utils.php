@@ -153,7 +153,7 @@ class Utils {
     }
 
     public static function getBusinessesFromDistance(float $latitude, float $longitude, float $distance) {
-        // Distance in longitude and latitude
+        // Distance in longitude and latitude (no km)
         $businesses = Business::whereBetween('longitude', [$longitude - $distance, $longitude + $distance])
                 -> whereBetween('latitude', [$latitude - $distance, $latitude + $distance])
                 -> get();

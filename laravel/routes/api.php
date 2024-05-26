@@ -55,6 +55,7 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function($router) {
     Route::post('/cancelValidation', [BusinessController::class, 'cancelValidation']);
     Route::get('/businessProductsResume', [BusinessController::class, 'businessProductsResume']) -> middleware('business');
     Route::get('/getValidatableBusinesses', [BusinessController::class, 'getValidatableBusinesses']) -> middleware('admin');
+    Route::post('/getNearbyBusinesses', [BusinessController::class, 'getNearbyBusinesses']); // For the map
     
     Route::get('/getProduct/{id}', [ProductController::class, 'getProduct']);
     Route::post('/createProduct', [ProductController::class, 'createProduct']) -> middleware('business');
@@ -66,7 +67,7 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function($router) {
     Route::post('/searchItemsByText', [ProductController::class, 'searchItemsByText']);
     
     Route::post('/getRecommendedItems', [ItemController::class, 'getRecommendedItems']);
-    Route::post('/getNearbyItems', [ItemController::class, 'getNearbyItems']);
+    Route::post('/getNearbyItems', [ItemController::class, 'getNearbyItems']); // For the explore page
     Route::get('/getItem/{id}', [ItemController::class, 'getItem']);
     
     Route::post('/orderItem', [OrderController::class, 'orderItem']);
