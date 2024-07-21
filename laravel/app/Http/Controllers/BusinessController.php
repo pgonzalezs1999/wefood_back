@@ -435,25 +435,27 @@ class BusinessController extends Controller
                             ]);
                             $business -> rate = Utils::getBusinessRate($business -> id);
                             $owner = User::where('id_business', $business -> id) -> first();
-                            $owner -> makeHidden([
-                                'id_business', 'real_name', 'real_surname', 'username', 'email', 'phone_prefix', 'phone', 'sex',
-                                'last_login_date', 'is_admin', 'last_latitude', 'last_longitude', 'email_verified',
-                            ]);
-                            $image = Image::where('id_user', $owner -> id) -> where('meaning', $product -> product_type . '1') -> first();
-                            if($image != null) {
-                                $image -> makeHidden([
-                                    'id', 'id_user',
+                            if($owner != null) {
+                                $owner -> makeHidden([
+                                    'id_business', 'real_name', 'real_surname', 'username', 'email', 'phone_prefix', 'phone', 'sex',
+                                    'last_login_date', 'is_admin', 'last_latitude', 'last_longitude', 'email_verified',
                                 ]);
+                                $image = Image::where('id_user', $owner -> id) -> where('meaning', $product -> product_type . '1') -> first();
+                                if($image != null) {
+                                    $image -> makeHidden([
+                                        'id', 'id_user',
+                                    ]);
+                                }
+                                $available = Utils::getAvailableAmountOfItem($item, $product);
+                                $results = array_merge($results, [[
+                                    'user' => $owner,
+                                    'product' => $product,
+                                    'business' => $business,
+                                    'item' => $item,
+                                    'image' => $image,
+                                    'available' => $available,
+                                ]]);
                             }
-                            $available = Utils::getAvailableAmountOfItem($item, $product);
-                            $results = array_merge($results, [[
-                                'user' => $owner,
-                                'product' => $product,
-                                'business' => $business,
-                                'item' => $item,
-                                'image' => $image,
-                                'available' => $available,
-                            ]]);
                         }
                     }
                 }

@@ -13,16 +13,12 @@ class addItemsToUnlimitedProducts extends Command
 {
     protected $signature = 'command:addItemsToUnlimitedProducts';
 
-    protected $description = 'Create future items for products
-                whose "ending_date" field is NULL (they will
-                create potentially infinite items).';
+    protected $description = 'Create future items for products whose "ending_date" field is NULL
+                (they will create potentially infinite items).';
 
-    public function handle()
-    {
+    public function handle() {
         $twoDaysFromNow = Carbon::now() -> addDays(2);
-        $products = Product::where('ending_date', null)
-                -> orWhere('ending_date', '>', $twoDaysFromNow)
-                -> get();
+        $products = Product::where('ending_date', null) -> orWhere('ending_date', '>', $twoDaysFromNow) -> get();
         $todayField = 'working_on_' . strtolower(Carbon::now() -> englishDayOfWeek);
         $tomorrowField = 'working_on_' . strtolower(Carbon::tomorrow() -> englishDayOfWeek);
     $weekDays = [ $todayField, $tomorrowField ];
@@ -41,9 +37,7 @@ class addItemsToUnlimitedProducts extends Command
             } else {
                 for($i = 0; $i < 2; $i++) {
                     if($product -> {$weekDays[$i]} == 1) {
-                        $todayItem = Item::where('id_product', $product -> id)
-                        -> where('date', $dates[$i])
-                        -> first();
+                        $todayItem = Item::where('id_product', $product -> id) -> where('date', $dates[$i]) -> first();
                         if($todayItem == null) {
                             Item::create([
                                 'id_product' => $product -> id,
@@ -53,7 +47,6 @@ class addItemsToUnlimitedProducts extends Command
                     }
                 }
             }
-            
         }
         return Command::SUCCESS;
     }

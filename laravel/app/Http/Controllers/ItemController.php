@@ -133,23 +133,25 @@ class ItemController extends Controller
                             ]);
                             $business -> rate = Utils::getBusinessRate($business -> id);
                             $owner = User::where('id_business', $business -> id) -> first();
-                            $owner -> makeHidden([
-                                'real_name', 'real_surname', 'username', 'email', 'phone', 'phone_prefix', 'sex',
-                                'last_latitude', 'last_longitude', 'last_login_date', 'email_verified', 'is_admin',
-                            ]);
-                            $image = Image::where('id_user', $owner -> id) -> where('meaning', $product -> product_type . '1') -> first();
-                            if($image != null) {
-                                $image -> makeHidden([
-                                    'id_user',
+                            if($owner != null) {
+                                $owner -> makeHidden([
+                                    'real_name', 'real_surname', 'username', 'email', 'phone', 'phone_prefix', 'sex',
+                                    'last_latitude', 'last_longitude', 'last_login_date', 'email_verified', 'is_admin',
+                                ]);
+                                $image = Image::where('id_user', $owner -> id) -> where('meaning', $product -> product_type . '1') -> first();
+                                if($image != null) {
+                                    $image -> makeHidden([
+                                        'id_user',
+                                    ]);
+                                }
+                                $results = $results -> push([
+                                    'product' => $product,
+                                    'business' => $business,
+                                    'user' => $owner,
+                                    'item' => $item,
+                                    'image' => $image,
                                 ]);
                             }
-                            $results = $results -> push([
-                                'product' => $product,
-                                'business' => $business,
-                                'user' => $owner,
-                                'item' => $item,
-                                'image' => $image,
-                            ]);
                         }
                     }
                 }
@@ -203,23 +205,25 @@ class ItemController extends Controller
                             ]);
                             $business -> rate = Utils::getBusinessRate($business -> id);
                             $owner = User::where('id_business', $business -> id) -> first();
-                            $owner -> makeHidden([
-                                'real_name', 'real_surname', 'username', 'email', 'phone', 'phone_prefix', 'sex',
-                                'last_latitude', 'last_longitude', 'last_login_date', 'email_verified', 'is_admin',
-                            ]);
-                            $image = Image::where('id_user', $owner -> id) -> where('meaning', $product -> product_type . '1') -> first();
-                            if($image != null) {
-                                $image -> makeHidden([
-                                    'id_user',
+                            if($owner != null) {
+                                $owner -> makeHidden([
+                                    'real_name', 'real_surname', 'username', 'email', 'phone', 'phone_prefix', 'sex',
+                                    'last_latitude', 'last_longitude', 'last_login_date', 'email_verified', 'is_admin',
                                 ]);
+                                $image = Image::where('id_user', $owner -> id) -> where('meaning', $product -> product_type . '1') -> first();
+                                if($image != null) {
+                                    $image -> makeHidden([
+                                        'id_user',
+                                    ]);
+                                }
+                                $results = array_merge($results, [[
+                                    'product' => $product,
+                                    'business' => $business,
+                                    'user' => $owner,
+                                    'item' => $item,
+                                    'image' => $image,
+                                ]]);
                             }
-                            $results = array_merge($results, [[
-                                'product' => $product,
-                                'business' => $business,
-                                'user' => $owner,
-                                'item' => $item,
-                                'image' => $image,
-                            ]]);
                         }
                     }
                 }
