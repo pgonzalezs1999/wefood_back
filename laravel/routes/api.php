@@ -12,6 +12,7 @@ use App\Http\Controllers\ItemController;
 use App\Http\Controllers\FavouriteController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ImageController;
+use App\Http\Controllers\PaymentController;
 
 Route::middleware('auth:sanctum') -> get('/user', function (Request $request) {
     return $request->user();
@@ -91,4 +92,6 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function($router) {
     Route::post('/uploadImage', [ImageController::class, 'uploadImage']);
     Route::post('/getImage', [ImageController::class, 'getImage']);
     Route::post('/removeImage', [ImageController::class, 'removeImage']);
+    
+    Route::post('/openpayGetToken', [PaymentController::class, 'openpayGetToken']);
 });
