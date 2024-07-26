@@ -71,7 +71,6 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function($router) {
     Route::post('/getNearbyItems', [ItemController::class, 'getNearbyItems']); // For the explore page
     Route::get('/getItem/{id}', [ItemController::class, 'getItem']);
     
-    Route::post('/orderItem', [OrderController::class, 'orderItem']);
     Route::get('/getPendingOrdersCustomer', [OrderController::class, 'getPendingOrdersCustomer']);
     Route::get('/getPendingOrdersBusiness', [OrderController::class, 'getPendingOrdersBusiness']) -> middleware('business');
     Route::get('/getOrderHistoryCustomer', [OrderController::class, 'getOrderHistoryCustomer']);
@@ -93,5 +92,5 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function($router) {
     Route::post('/getImage', [ImageController::class, 'getImage']);
     Route::post('/removeImage', [ImageController::class, 'removeImage']);
     
-    Route::post('/openpayGetToken', [PaymentController::class, 'openpayGetToken']);
+    Route::post('/openpayPayment', [PaymentController::class, 'openpayPayment']);
 });
