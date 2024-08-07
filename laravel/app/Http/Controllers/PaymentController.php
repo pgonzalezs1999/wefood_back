@@ -30,7 +30,7 @@ class PaymentController extends Controller
             'card_number' => 'required|numeric',
             'expiration_year' => 'required|numeric|min:24|max:99',
             'expiration_month' => 'required|numeric|min:1|max:12',
-            'cvv2' => 'required|numeric|min:0|max:999',
+            'cvv2' => 'required|numeric|min:0|max:9999',
             'id_item' => 'required|numeric|exists:items,id',
             'amount' => 'required|numeric',
         ]);
@@ -101,20 +101,24 @@ class PaymentController extends Controller
                 'email' => $user -> email,
             ],
         ]);
-        $responseData2 = $response2 -> json(); // Si $response2 es JSON, manejarlo como tal
-        if(json_last_error() !== JSON_ERROR_NONE) {
-            return response() -> json([
-                'error' => 'Respuesta no es JSON',
-                'details' => $response2 -> body()
-            ], 500);
-        }
-        $order = Order::create([
-            'id_user' => $user -> id,
-            'id_item' => $request -> input('id_item'),
-            'amount' => $request -> input('amount'),
-            'order_date' => Carbon::now(),
-            'id_payment' => 1,
-        ]);
-        return response() -> json($responseData2, 200);
+        $response2Data = $response2->json();
+        if(array_key_exists('error_code', $response2Data)) {
+            return response()->json([
+                'error_code' => $response2Data['error_code'],
+            ], 400);
+        } else if(array_key_exists('error', $response2Data)) {
+            return response()->json([
+                'error' => $response2Data['error'],
+            ], 400);
+        } else {
+			$order = Order::create([
+				'id_user' => $user -> id,
+				'id_item' => $request -> input('id_item'),
+				'amount' => $request -> input('amount'),
+				'order_date' => Carbon::now(),
+				'id_payment' => 1,
+			]);
+			return response() -> json($response2Data, 200);
+		}
     }
 }

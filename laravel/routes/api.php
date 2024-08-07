@@ -13,6 +13,7 @@ use App\Http\Controllers\FavouriteController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ImageController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\RetributionController;
 
 Route::middleware('auth:sanctum') -> get('/user', function (Request $request) {
     return $request->user();
@@ -25,6 +26,7 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function($router) {
     Route::post('/updateRealName', [UserController::class, 'updateRealName']);
     Route::post('/updateUsername', [UserController::class, 'updateUsername']);
     Route::post('/updatePassword', [UserController::class, 'updatePassword']);
+    Route::get('/emailChangePassword/{email1}/{email2}/{email3}', [UserController::class, 'emailChangePassword']);
     Route::post('/updateEmail', [UserController::class, 'updateEmail']);
     Route::post('/updatePhone', [UserController::class, 'updatePhone']);
     Route::post('/updateSex', [UserController::class, 'updateSex']);
@@ -93,4 +95,8 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function($router) {
     Route::post('/removeImage', [ImageController::class, 'removeImage']);
     
     Route::post('/openpayPayment', [PaymentController::class, 'openpayPayment']);
+
+    Route::post('/createRetribution', [RetributionController::class, 'createRetribution']) -> middleware('admin');
+    Route::get('/getRetributionsFromBusiness/{id}', [RetributionController::class, 'getRetributionsFromBusiness']) -> middleware('business');
+    Route::get('/getRetributionsFromBusinessAdmin/{id}', [RetributionController::class, 'getRetributionsFromBusinessAdmin']) -> middleware('admin');
 });

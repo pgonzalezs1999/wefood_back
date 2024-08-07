@@ -15,6 +15,8 @@ use App\Models\Product;
 use App\Models\Item;
 use App\Models\Order;
 use App\Models\Favourite;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ChangePasswordMail;
 
 class UserController extends Controller
 {
@@ -26,6 +28,7 @@ class UserController extends Controller
             'checkUsernameAvailability',
             'checkEmailAvailability',
             'checkPhoneAvailability',
+            'emailChangePassword',
         ]]);
     }
 
@@ -145,6 +148,14 @@ class UserController extends Controller
         return response() -> json([
             'message' => 'Username successfully updated.',
             'user' => $userDb
+        ], 200);
+    }
+
+    public function emailChangePassword(String $email1, String $email2, String $email3) {
+        $email = $email1 . '@' . $email2 . '.' . $email3;
+        Mail::to($email) -> send(new ChangePasswordMail());
+        return response() -> json([
+            'message' => 'Email sent successfully.'
         ], 200);
     }
 

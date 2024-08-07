@@ -43,7 +43,10 @@ return [
             'password' => env('MAIL_PASSWORD'),
             'timeout' => null,
             'local_domain' => env('MAIL_EHLO_DOMAIN'),
-            'from' => ['address' => 'example@example.com', 'name' => 'App Name'],
+            'from' => [
+                'address' => 'info@wefoodcompany.com',
+                'name' => 'WeFood Company'
+            ],
         ],
 
         'ses' => [
