@@ -463,17 +463,20 @@ class ProductController extends Controller
                     'working_on_monday', 'working_on_tuesday', 'working_on_wednesday', 'working_on_thursday', 'working_on_friday', 'working_on_saturday', 'working_on_sunday',
                     'directions', 'longitude', 'latitude',
                 ]);
-                $user -> makeHidden([
-                    'real_name', 'real_surname', 'username', 'email', 'phone', 'phone_prefix', 'sex',
-                    'last_latitude', 'last_longitude', 'last_login_date',
-                    'id_business', 'email_verified', 'is_admin',
-                ]);
-                $image = Image::where('id_user', $user -> id) -> where('meaning', $product -> product_type . '1') -> first();
-                if($image != null) {
-                    $image -> makeHidden([
-                        'id_user',
-                    ]);
-                }
+                if($user != null) {
+					$user -> makeHidden([
+                    	'real_name', 'real_surname', 'username', 'email', 'phone', 'phone_prefix', 'sex',
+                    	'last_latitude', 'last_longitude', 'last_login_date',
+                    	'id_business', 'email_verified', 'is_admin',
+                	]);
+                    $image = null;
+                    $image = Image::where('id_user', $user -> id) -> where('meaning', $product -> product_type . '1') -> first();
+                    if($image != null) {
+                        $image -> makeHidden([
+                            'id_user',
+                        ]);
+                    }
+				}
                 $results -> push([
                     'item' => $item,
                     'product' => $product,

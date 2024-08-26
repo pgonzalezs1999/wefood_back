@@ -29,6 +29,7 @@ class UserController extends Controller
             'checkEmailAvailability',
             'checkPhoneAvailability',
             'emailChangePassword',
+            'updatePassword',
         ]]);
     }
 
@@ -36,7 +37,7 @@ class UserController extends Controller
         $validator = Validator::make($request -> all(), [
             'username' => 'required|string|min:5|max:50|unique:users',
             'email' => 'required|string|email|max:50|unique:users',
-            'password' => 'required|string|min:6|max:20',
+            'password' => 'required|min:6|max:20',
             'real_name' => 'nullable|string|min:6|max:50|regex:/^[^\d]+$/',
             'real_surname' => 'nullable|string|min:6|max:50|regex:/^[^\d]+$/',
             'phone' => 'nullable|integer|min:6|max:15',
@@ -153,7 +154,15 @@ class UserController extends Controller
 
     public function emailChangePassword(String $email1, String $email2, String $email3) {
         $email = $email1 . '@' . $email2 . '.' . $email3;
-        Mail::to($email) -> send(new ChangePasswordMail());
+        $userExists = User::where('email', $email) -> exists();
+        if($userExists) {
+            $verification_code = random_int(1, 99999);
+            $user = User::where('email', $email) -> first();
+            $user-> verification_code = $verification_code;
+            $url = "https://api.wefoodcompany.com/app/changePassword?id={$user->id}&code={$verification_code}";
+            $user -> save();
+            Mail::to($email) -> send(new ChangePasswordMail($url));
+        }
         return response() -> json([
             'message' => 'Email sent successfully.'
         ], 200);
@@ -161,20 +170,26 @@ class UserController extends Controller
 
     public function updatePassword(Request $request) {
         $validator = Validator::make($request -> all(), [
-            'password' => 'required|string|min:6|max:20',
+            'id' => 'required|exists:users,id',
+            'verification_code' => 'required|min:1',
+            'password' => 'required|min:6|max:20',
         ]);
         if($validator -> fails()) {
             return response() -> json([
                 'error' => $validator -> errors() -> toJson()
             ], 422);
         }
-        $user = Auth::user();
-        $userDb = User::find($user -> id);
-        $userDb -> password = bcrypt($request -> input('password'));
-        $userDb -> save();
+        $user = User::find($request -> input('id'));
+        if($request -> input('verification_code') != $user -> verification_code) {
+            return response() -> json([
+                'error' => 'Unauthorized',
+            ], 401);
+        }
+        $user -> password = bcrypt($request -> input('password'));
+        $user -> verification_code = null;
+        $user -> save();
         return response() -> json([
             'message' => 'Password successfully updated.',
-            'user' => $userDb
         ], 200);
     }
 

@@ -64,8 +64,8 @@ class PaymentController extends Controller
                 'error' => 'Item not available anymore.'
             ], 422);
         }
-        $response1 = Http::withBasicAuth('pk_d0651ad6528145c69c79de9002864eac', '')
-            -> post('https://sandbox-api.openpay.pe/v1/muorexrewu3587xbmooq/tokens', [
+        $response1 = Http::withBasicAuth('pk_540273ba143943b999db84f432e85aa3', '')
+            -> post('https://api.openpay.pe/v1/mg1ippvpuekjrkszeuxc/tokens', [
                 'card_number' => $request -> input('card_number'),
                 'holder_name' => $request -> input('holder_name'),
                 'expiration_year' => $request -> input('expiration_year'),
@@ -87,8 +87,8 @@ class PaymentController extends Controller
         $date = new DateTime();
         $formattedDate = $date -> format('YmdHis');
         $oid = 'oid-' . $paddedUserId . '-' . $formattedDate;
-        $response2 = Http::withBasicAuth('sk_11db13e676de4739ba6c728fbba3efe0', '')
-                -> post('https://sandbox-api.openpay.pe/v1/muorexrewu3587xbmooq/charges', [
+        $response2 = Http::withBasicAuth('sk_da74b3a391734614a0ab59eae4c3cb9c', '')
+                -> post('https://api.openpay.pe/v1/mg1ippvpuekjrkszeuxc/charges', [
             'source_id' => $responseData['id'],
             'method' => 'card',
             'amount' => $request -> input('price'),

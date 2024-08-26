@@ -13,13 +13,15 @@ class ChangePasswordMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public function __construct() {
-        
+    public $url;
+
+    public function __construct($url) {
+        $this -> url = $url;
     }
 
     public function envelope() {
         return new Envelope(
-            subject: 'Change Password Mail',
+            subject: 'Cambio de contraseña en WeFood',
         );
     }
 
