@@ -40,6 +40,7 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function($router) {
     Route::get('/logout', [AuthController::class, 'logout']);
     Route::post('/addAdmin', [AuthController::class, 'addAdmin']) -> middleware('admin');
     Route::post('/removeAdmin', [AuthController::class, 'removeAdmin']) -> middleware('admin');
+    Route::get('/checkForUpdates/{downloaded}', [AuthController::class, 'checkForUpdates']);
     
     Route::post('/createBusiness', [BusinessController::class, 'createBusiness']); // business signin
     Route::get('/getSessionBusiness', [BusinessController::class, 'getSessionBusiness']) -> middleware('business');
@@ -59,6 +60,7 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function($router) {
     Route::get('/businessProductsResume', [BusinessController::class, 'businessProductsResume']) -> middleware('business');
     Route::get('/getValidatableBusinesses', [BusinessController::class, 'getValidatableBusinesses']) -> middleware('admin');
     Route::post('/getNearbyBusinesses', [BusinessController::class, 'getNearbyBusinesses']); // For the map
+    Route::post('/updateBankInfo', [BusinessController::class, 'updateBankInfo']) -> middleware('business');
     
     Route::get('/getProduct/{id}', [ProductController::class, 'getProduct']);
     Route::post('/createProduct', [ProductController::class, 'createProduct']) -> middleware('business');

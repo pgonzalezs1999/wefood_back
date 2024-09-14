@@ -19,6 +19,11 @@ class Business extends Model
         'longitude',
         'latitude',
         'directions',
+        'bank_name',
+        'bank_account',
+        'bank_account_type',
+        'bank_owner_name',
+        'interbank_account',
         'created_at',
         'deleted_at',
     ];

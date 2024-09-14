@@ -596,4 +596,36 @@ class BusinessController extends Controller
             'results' => $result,
         ], 200);
     }
+
+    public function updateBankInfo(Request $request) {
+        $validator = Validator::make($request -> all(), [
+            'id_business' => 'required|exists:businesses,id',
+            'bank_owner_name' => 'required',
+            'bank_name' => 'required',
+            'bank_account' => 'required',
+            'bank_account_type' => 'required',
+            'interbank_account' => 'required',
+        ]);
+        if($validator -> fails()) {
+            return response() -> json([
+                'error' => $validator -> errors() -> toJson()
+            ], 400);
+        }
+        $user = $request -> input('mw_user');
+        $business = Business::find($request -> input('id_business'));
+        if($user -> id_business != $business -> id) {
+            return response() -> json([
+                'error' => 'Not your business',
+            ], 403);
+        }
+        $business -> bank_owner_name = $request -> input('bank_owner_name');
+        $business -> bank_name = $request -> input('bank_name');
+        $business -> bank_account = $request -> input('bank_account');
+        $business -> bank_account_type = $request -> input('bank_account_type');
+        $business -> interbank_account = $request -> input('interbank_account');
+        $business -> save();
+        return response() -> json([
+            'message' => 'Bank data updated successfully',
+        ], 200);
+    }
 }

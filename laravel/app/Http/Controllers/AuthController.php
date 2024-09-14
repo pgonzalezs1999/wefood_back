@@ -15,7 +15,10 @@ class AuthController extends Controller
     use SoftDeletes;
     
     public function __construct() {
-        $this -> middleware('auth:api', ['except' => ['login']]);
+        $this -> middleware('auth:api', ['except' => [
+            'login',
+            'checkForUpdates',
+        ]]);
     }
 
     public function login(Request $request) {
@@ -112,5 +115,23 @@ class AuthController extends Controller
         return response() -> json([
             'message' => 'Admin successfully removed.',
         ], 200);
+    }
+
+    public function checkForUpdates(String $downloaded) {
+        $required_version = 1;
+        $latest_version = 1;
+        if($downloaded < $required_version) {
+            return response() -> json([
+                'message' => '3', // Mandatory update needed
+            ], 200);
+        } else if($downloaded < $latest_version) {
+            return response() -> json([
+                'message' => '2', // Optional update available
+            ], 200);
+        } else {
+            return response() -> json([
+                'message' => '1', // Up to date
+            ], 200);
+        }
     }
 }

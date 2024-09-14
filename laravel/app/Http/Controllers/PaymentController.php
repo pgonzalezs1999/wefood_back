@@ -33,6 +33,7 @@ class PaymentController extends Controller
             'cvv2' => 'required|numeric|min:0|max:9999',
             'id_item' => 'required|numeric|exists:items,id',
             'amount' => 'required|numeric',
+            'device_session_id' => 'required',
         ]);
         if($validator -> fails()) {
             return response() -> json([
@@ -95,7 +96,7 @@ class PaymentController extends Controller
             'currency' => 'PEN',
             'description' => 'WeFood S.A.C.',
             'order_id' => $oid,
-            'device_session_id' => 'mM8PdDJWZ4DcwoDg0F9tLh3gRW4FX2aQ',
+            'device_session_id' => $request -> input('device_session_id'),
             'customer' => [
                 'name' => $request -> input('holder_name'),
                 'email' => $user -> email,
