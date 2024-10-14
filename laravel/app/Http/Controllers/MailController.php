@@ -8,7 +8,7 @@ use App\Mail\VerifyEmail;
 
 class MailController extends Controller
 {
-    public static function verifyEmail(string $email, string $token) {
+    public static function verifyEmail(string $email='', string $token='') {
         $verifyEmail_url = 'http://127.0.0.1:8000/api/auth/verifyEmail';
         $verifyEmail_body = '
             <h1>¡Has iniciado sesión!</h1>
@@ -23,10 +23,10 @@ class MailController extends Controller
                 }
             </script>
         ';
-        Mail::send([], [], function($message) use ($email, $verifyEmail_body) {
-            $message -> to($email)
-                     -> subject('Inicio de sesión exitoso')
-                     -> html($verifyEmail_body, 'text/html');
-        });
+        //Mail::send([], [], function($message) use ($email, $verifyEmail_body) {
+         //   $message -> to($email)
+           //          -> subject('Inicio de sesión exitoso')
+             //        -> html($verifyEmail_body, 'text/html');
+        //});
     }
 }
