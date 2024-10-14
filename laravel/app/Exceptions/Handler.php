@@ -9,6 +9,7 @@ use Throwable;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 use Tymon\JWTAuth\Exceptions\TokenInvalidException;
+use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 
 class Handler extends ExceptionHandler
 {
@@ -67,5 +68,11 @@ class Handler extends ExceptionHandler
                 'code' => 401,
             ], 401);
         });
+		
+		 $this->renderable(function (MethodNotAllowedHttpException $e, $request) {
+            return Response::view('errors.404', [], 404);
+        });
+		
+		
     }
 }
