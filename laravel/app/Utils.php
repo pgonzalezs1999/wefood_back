@@ -15,6 +15,9 @@ use App\Models\Comment;
 
 class Utils {
 
+
+
+    
     use SoftDeletes;
 
     public static array $validImageTypes = ['jpg', 'png', 'gif'];
