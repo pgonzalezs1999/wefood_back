@@ -114,13 +114,16 @@ class ItemController extends Controller
         $businesses = $businesses -> values() -> all();
         $results = new Collection();
         foreach($businesses as $business) {
+            print("- business: " . $business . "\n");
             $items = Utils::getItemsFromBusiness($business);
             if($items != null) {
                 foreach($items as $item) {
+                    print("- - item: " . $item . "\n");
                     if($item -> date == Carbon::today() -> startOfDay()
                         || $item -> date == Carbon::tomorrow() -> startOfDay()
                     ){
                         $product = Product::find($item -> id_product);
+                        print("- - - product: " . $product . "\n");
                         if(($item -> date == Carbon::today() -> startOfDay() && Carbon::parse($product -> ending_hour) -> isPast()) == false) {
                             $product -> amount = Utils::getAvailableAmountOfItem($item, $product);
                             $product -> makeHidden([
@@ -134,6 +137,7 @@ class ItemController extends Controller
                             $business -> rate = Utils::getBusinessRate($business -> id);
                             $owner = User::where('id_business', $business -> id) -> first();
                             if($owner != null) {
+                                print("- - - - owner: " . $owner . "\n");
                                 $owner -> makeHidden([
                                     'real_name', 'real_surname', 'username', 'email', 'phone', 'phone_prefix', 'sex',
                                     'last_latitude', 'last_longitude', 'last_login_date', 'email_verified', 'is_admin',
