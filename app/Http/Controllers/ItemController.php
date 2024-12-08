@@ -105,8 +105,11 @@ class ItemController extends Controller
         }
         $user = Auth::user();
         $businesses = Utils::getBusinessesFromDistance(
-            $request -> latitude, $request -> longitude, 0.5
+            $request -> latitude,
+            $request -> longitude,
+            0.5,
         );
+        $businesses = Business::all();
         foreach($businesses as $business) {
             $distance = Utils::get2dDistance($request -> longitude, $request -> latitude, $business -> longitude, $business -> latitude);
             $business -> distance = $distance;
