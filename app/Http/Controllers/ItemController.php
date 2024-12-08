@@ -112,9 +112,6 @@ class ItemController extends Controller
             $business -> distance = $distance;
         }
         $businesses = $businesses -> values() -> all();
-        return response() -> json([
-            'businesses' => $businesses,
-        ], 200);
         $results = new Collection();
         foreach($businesses as $business) {
             $items = Utils::getItemsFromBusiness($business);
@@ -160,6 +157,9 @@ class ItemController extends Controller
                 }
             }
         }
+        return response() -> json([
+            'results' => $results,
+        ], 200);
         $random_items = ($results -> count() >= 3)
             ? $results -> random(3)
             : $results;
