@@ -107,6 +107,9 @@ class ItemController extends Controller
         $businesses = Utils::getBusinessesFromDistance(
             $request -> latitude, $request -> longitude, 99999999
         );
+        return response() -> json([
+            'businesses' => $businesses,
+        ], 200);
         foreach($businesses as $business) {
             $distance = Utils::get2dDistance($request -> longitude, $request -> latitude, $business -> longitude, $business -> latitude);
             $business -> distance = $distance;
